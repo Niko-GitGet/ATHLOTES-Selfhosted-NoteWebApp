@@ -19,8 +19,8 @@ for d in [DATA_DIR, NOTES_DIR, TRASH_DIR]:
     os.makedirs(d, exist_ok=True)
 
 # ── Single hard-coded credential (change here to update login) ────────────────
-USERNAME = "Athl"
-PIN      = "192.168"
+USERNAME = "your_username_here"
+PIN      = "your_pin_here"
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 def login_required(f):

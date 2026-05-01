@@ -3,21 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATHLOTES // SECURE ACCESS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;700&display=swap" rel="stylesheet">
+    <title>ATHLOTES // ACCESS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --accent: #ffffff;
-            --glass: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.1);
-        }
+        :root { --accent: #ffffff; --glass: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.1); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background: #000 url('/static/background1.png') no-repeat center center fixed;
+            background: #000 url('/static/background1.webp') no-repeat center center fixed;
             background-size: cover;
             color: white;
             font-family: 'Quicksand', sans-serif;
-            margin: 0;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -30,21 +26,20 @@
             content: "";
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0,0,0,0.7);
             backdrop-filter: blur(50px);
             z-index: -1;
         }
 
         .main-header {
-            font-size: 8rem; 
+            font-size: clamp(3rem, 10vw, 8rem);
             font-weight: 300;
-            letter-spacing: 40px;
+            letter-spacing: clamp(15px, 5vw, 40px);
             text-transform: uppercase;
             margin-bottom: 40px;
-            padding-left: 40px; 
+            padding-left: clamp(10px, 3vw, 40px);
             opacity: 0.9;
             text-align: center;
-            width: 100%;
         }
 
         .glass-box {
@@ -52,96 +47,97 @@
             backdrop-filter: blur(20px);
             border: 1px solid var(--border);
             border-radius: 40px;
-            padding: 60px;
+            padding: 50px 60px;
             width: 100%;
-            max-width: 450px;
+            max-width: 500px;
             display: flex;
             flex-direction: column;
             align-items: center;
             box-shadow: 0 40px 100px rgba(0,0,0,0.5);
         }
 
-        .input-group {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
-        }
+        /* ── Inputs ── */
+        .input-group { width: 100%; display: flex; flex-direction: column; gap: 16px; align-items: center; }
 
         input {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255,255,255,0.05);
             border: 1px solid var(--border);
-            padding: 22px;
+            padding: 20px;
             color: white;
             border-radius: 15px;
             text-align: center;
             font-family: inherit;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             transition: all 0.3s ease;
-            box-sizing: border-box;
         }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: rgba(255, 255, 255, 0.1);
-        }
+        input:focus { outline: none; border-color: var(--accent); background: rgba(255,255,255,0.1); }
+        input::placeholder { color: rgba(255,255,255,0.3); }
 
         .btn-login {
             width: 100%;
-            padding: 22px;
+            padding: 20px;
             background: white;
             color: black;
             border: none;
             border-radius: 15px;
             font-weight: 700;
             cursor: pointer;
-            letter-spacing: 15px;
+            letter-spacing: 12px;
             text-transform: uppercase;
             transition: all 0.4s ease;
-            margin-top: 10px;
-            font-size: 1rem;
+            margin-top: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
         }
-
-        .btn-login:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(255,255,255,0.2);
-        }
+        .btn-login:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,255,255,0.2); }
+        .btn-login:active { transform: translateY(0); }
 
         #status-msg {
-            margin-top: 20px;
+            margin-top: 18px;
             color: #ff8a8a;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             letter-spacing: 3px;
             text-transform: uppercase;
-            height: 20px;
+            height: 18px;
+            transition: opacity 0.3s;
         }
 
-        @media (max-width: 900px) {
-            .main-header { font-size: 4rem; letter-spacing: 20px; }
+        .divider {
+            width: 100%;
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 6px 0 20px;
+        }
+
+        .section-label {
+            font-size: 0.6rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.4;
+            margin-bottom: 14px;
+            align-self: flex-start;
         }
     </style>
 </head>
 <body>
-
     <div class="main-header">ATHLOTES</div>
 
     <div class="glass-box">
         <div class="input-group">
             <input type="text" id="user" placeholder="USER ID" autocomplete="off">
             <input type="password" id="pin" placeholder="PIN CODE">
-            <button class="btn-login" onclick="attemptAuth()">LOGIN</button>
+            <button class="btn-login" onclick="attemptAuth()">ACCESS</button>
         </div>
         <div id="status-msg"></div>
     </div>
 
     <script>
         async function attemptAuth() {
-            const u = document.getElementById('user').value;
+            const u = document.getElementById('user').value.trim();
             const p = document.getElementById('pin').value;
             const msg = document.getElementById('status-msg');
+            if (!u || !p) { msg.innerText = "FILL ALL FIELDS"; setTimeout(() => msg.innerText='', 2000); return; }
 
             const res = await fetch('/api/login', {
                 method: 'POST',
@@ -149,17 +145,15 @@
                 body: JSON.stringify({user: u, pin: p})
             });
 
-            if(res.ok) {
+            if (res.ok) {
                 window.location.href = '/';
             } else {
                 msg.innerText = "ACCESS DENIED";
-                setTimeout(() => msg.innerText = "", 2000);
+                setTimeout(() => msg.innerText = '', 2000);
             }
         }
 
-        document.addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') attemptAuth();
-        });
+        document.addEventListener('keypress', e => { if (e.key === 'Enter') attemptAuth(); });
     </script>
 </body>
 </html>

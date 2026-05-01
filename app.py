@@ -1,56 +1,100 @@
 import os
 import shutil
+import json
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from datetime import datetime
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = 'athl_v54_ultra'
+app.secret_key = 'athl_v54_ultra_single'
 
-# CHANGE YOUR CREDENTIALS TO WHATEVER YOU LIKE, BUT REMEMBER TO USE A STRONG PIN!
-AUTH_USER = "ADMIN"
-AUTH_PIN = "1234"
-
+# ── Storage Paths ─────────────────────────────────────────────────────────────
 BASE_DIR = os.getcwd()
-NOTES_DIR = os.path.join(BASE_DIR, 'notes')
-TRASH_DIR = os.path.join(BASE_DIR, 'trash')
+DATA_DIR = '/app/data' if os.path.exists('/app/data') else os.path.join(BASE_DIR, 'data')
+CONFIG_FILE = os.path.join(DATA_DIR, 'config.json')
+NOTES_DIR  = os.path.join(DATA_DIR, 'notes')
+TRASH_DIR  = os.path.join(DATA_DIR, 'trash')
 
-for d in [NOTES_DIR, TRASH_DIR]:
-    if not os.path.exists(d): 
-        os.makedirs(d)
+for d in [DATA_DIR, NOTES_DIR, TRASH_DIR]:
+    os.makedirs(d, exist_ok=True)
 
+# ── Single hard-coded credential (change here to update login) ────────────────
+USERNAME = "Athl"
+PIN      = "192.168"
+
+# ── Auth ──────────────────────────────────────────────────────────────────────
 def login_required(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'logged_in' not in session:
+    def decorated(*args, **kwargs):
+        if 'username' not in session:
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-    return decorated_function
+    return decorated
 
 @app.route('/login')
 def login():
-    if 'logged_in' in session:
+    if 'username' in session:
         return redirect(url_for('index'))
     return render_template('login.html')
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.json
-    if data.get('user') == AUTH_USER and data.get('pin') == AUTH_PIN:
-        session['logged_in'] = True
+    if data.get('user', '').strip() == USERNAME and data.get('pin', '') == PIN:
+        session['username'] = USERNAME
         return jsonify({"status": "success"}), 200
     return jsonify({"status": "denied"}), 401
 
+@app.route('/api/users', methods=['GET'])
+def api_get_users():
+    return jsonify([USERNAME])
+
+# ── Habit Tracker ─────────────────────────────────────────────────────────────
+HABITS_FILE = os.path.join(DATA_DIR, 'habits.json')
+
+@app.route('/api/habits', methods=['GET'])
+@login_required
+def get_habits():
+    if os.path.exists(HABITS_FILE):
+        with open(HABITS_FILE, 'r') as f:
+            return jsonify(json.load(f))
+    return jsonify({})
+
+@app.route('/api/habits', methods=['POST'])
+@login_required
+def save_habits():
+    with open(HABITS_FILE, 'w') as f:
+        json.dump(request.json, f, indent=2)
+    return jsonify({"status": "success"})
+
 @app.route('/logout')
 def logout():
-    session.pop('logged_in', None)
+    session.pop('username', None)
     return redirect(url_for('login'))
 
+# ── Config (Theme + Background) ───────────────────────────────────────────────
+@app.route('/api/config', methods=['GET'])
+@login_required
+def get_config():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as f:
+            return jsonify(json.load(f))
+    return jsonify({})
+
+@app.route('/api/config', methods=['POST'])
+@login_required
+def save_config():
+    with open(CONFIG_FILE, 'w') as f:
+        json.dump(request.json, f, indent=2)
+    return jsonify({"status": "success"})
+
+# ── Main App ──────────────────────────────────────────────────────────────────
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    return render_template('index.html', username=USERNAME)
 
+# ── File Tree ─────────────────────────────────────────────────────────────────
 @app.route('/api/tree')
 @login_required
 def get_tree():
@@ -67,7 +111,8 @@ def get_tree():
                 items = sorted(os.listdir(path), key=lambda x: (not os.path.isdir(os.path.join(path, x)), x.lower()))
                 for item in items:
                     node["children"].append(build_tree(os.path.join(path, item)))
-            except PermissionError: pass
+            except PermissionError:
+                pass
         else:
             node["date"] = datetime.fromtimestamp(os.path.getmtime(path)).strftime('%d.%m.%y')
         return node
@@ -78,7 +123,7 @@ def get_tree():
 def get_content():
     path = os.path.join(NOTES_DIR, request.json['path'].lstrip('/'))
     if os.path.exists(path) and os.path.isfile(path):
-        with open(path, 'r', encoding='utf-8') as f: 
+        with open(path, 'r', encoding='utf-8') as f:
             return jsonify({"content": f.read()})
     return jsonify({"content": ""})
 
@@ -88,7 +133,7 @@ def save():
     data = request.json
     full_path = os.path.join(NOTES_DIR, data['path'].lstrip('/'))
     os.makedirs(os.path.dirname(full_path), exist_ok=True)
-    with open(full_path, 'w', encoding='utf-8') as f: 
+    with open(full_path, 'w', encoding='utf-8') as f:
         f.write(data['content'])
     return jsonify({"status": "success"})
 
@@ -101,10 +146,11 @@ def create():
         os.makedirs(full_path, exist_ok=True)
     else:
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
-        if not full_path.lower().endswith('.txt'): 
+        if not full_path.lower().endswith('.txt'):
             full_path += '.txt'
-        with open(full_path, 'w', encoding='utf-8') as f: 
-            f.write("")
+        if not os.path.exists(full_path):
+            with open(full_path, 'w', encoding='utf-8') as f:
+                f.write("")
     return jsonify({"status": "success"})
 
 @app.route('/rename', methods=['POST'])
@@ -113,7 +159,7 @@ def rename():
     data = request.json
     old_p = os.path.join(NOTES_DIR, data['old'].lstrip('/'))
     new_p = os.path.join(os.path.dirname(old_p), data['new'])
-    if os.path.exists(old_p): 
+    if os.path.exists(old_p):
         os.rename(old_p, new_p)
     return jsonify({"status": "success"})
 
@@ -125,7 +171,6 @@ def move():
     dest_folder = data['dest_folder'] if data['dest_folder'] != "ROOT" else ""
     dst_dir = os.path.join(NOTES_DIR, dest_folder.lstrip('/'))
     dst_file = os.path.join(dst_dir, os.path.basename(src))
-    
     if os.path.exists(src):
         os.makedirs(dst_dir, exist_ok=True)
         shutil.move(src, dst_file)
@@ -144,24 +189,20 @@ def trash_op():
     if action == 'to_trash':
         src = os.path.join(NOTES_DIR, name.lstrip('/'))
         dst = os.path.join(TRASH_DIR, datetime.now().strftime("%Y%m%d_%H%M_") + os.path.basename(name))
-        if os.path.exists(src): 
+        if os.path.exists(src):
             shutil.move(src, dst)
     elif action == 'restore':
         src = os.path.join(TRASH_DIR, name)
         orig = "_".join(name.split("_")[2:])
         dst = os.path.join(NOTES_DIR, orig)
-        if os.path.exists(src): 
+        if os.path.exists(src):
             shutil.move(src, dst)
     elif action == 'purge':
         p = os.path.join(TRASH_DIR, name)
         if os.path.exists(p):
-            if os.path.isdir(p): 
-                shutil.rmtree(p)
-            else: 
-                os.remove(p)
+            shutil.rmtree(p) if os.path.isdir(p) else os.remove(p)
     return jsonify({"status": "success"})
 
-if __name__ == '__main__':
-    # Port is set to 5000, you can change it if needed. Remember this is not a production server, so don't expose it to the internet without proper security measures!
-    # Make sure to consider all risks before doing so, and ideally use a reverse proxy with HTTPS and authentication in front of it.
-    app.run(host='0.0.0.0', port=5000, debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

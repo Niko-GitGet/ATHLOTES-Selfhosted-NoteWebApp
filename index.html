@@ -2,271 +2,331 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>ATHLOTES ALPHA V.54</title>
+    <title>ATHLOTES V.02</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas for image export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { 
-            --accent: #FFFFFF; 
-            --border: rgba(255, 255, 255, 0.15); 
-            --pastel-red: #ff8a8a; 
-            --pastel-green: #a8e6cf; 
-            --glass: rgba(0, 0, 0, 0.5);
-            --island-bg: rgba(0, 0, 0, 0.6);
+        :root {
+            --accent: #FFFFFF;
+            --border: rgba(255,255,255,0.15);
+            --pastel-red: #ff8a8a;
+            --pastel-green: #a8e6cf;
+            --glass: rgba(0,0,0,0.5);
+            --island-bg: rgba(0,0,0,0.6);
             --bg-overlay: rgba(0,0,0,0);
             --gap: 15px;
             --pad: 15px;
+            --underline-color: #ffffff;
         }
-        
+
         /* THEMES */
-        body.theme-matrix { --accent: #00FF00; --border: rgba(0, 255, 0, 0.2); --bg-overlay: rgba(0, 20, 0, 0.4); }
-        body.theme-blood  { --accent: #FF4444; --border: rgba(255, 0, 0, 0.2); --bg-overlay: rgba(20, 0, 0, 0.4); }
-        body.theme-ocean  { --accent: #00E5FF; --border: rgba(0, 229, 255, 0.2); --bg-overlay: rgba(0, 10, 20, 0.4); }
-        body.theme-amber  { --accent: #FFB300; --border: rgba(255, 179, 0, 0.2); --bg-overlay: rgba(20, 15, 0, 0.4); }
+        body.theme-matrix { --accent:#00FF00; --border:rgba(0,255,0,0.2); --bg-overlay:rgba(0,20,0,0.4); }
+        body.theme-blood  { --accent:#FF4444; --border:rgba(255,0,0,0.2); --bg-overlay:rgba(20,0,0,0.4); }
+        body.theme-ocean  { --accent:#00E5FF; --border:rgba(0,229,255,0.2); --bg-overlay:rgba(0,10,20,0.4); }
+        body.theme-amber  { --accent:#FFB300; --border:rgba(255,179,0,0.2); --bg-overlay:rgba(20,15,0,0.4); }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        * { box-sizing:border-box; margin:0; padding:0; outline:none; }
 
-        body { 
-            background: url('/static/background1.png') no-repeat center center fixed; 
+        body {
+            background: url('/static/background1.webp') no-repeat center center fixed;
             background-size: cover;
-            color: var(--accent); 
-            font-family: 'Quicksand', sans-serif; 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
-            padding: var(--pad); 
+            color: var(--accent);
+            font-family: 'Quicksand', sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            padding: var(--pad);
             gap: var(--gap);
             transition: background 0.5s ease;
         }
 
-        body::before { content: ""; position: absolute; inset: 0; background: var(--bg-overlay); pointer-events: none; z-index: 0; transition: 0.5s; }
+        body::before { content:""; position:absolute; inset:0; background:var(--bg-overlay); pointer-events:none; z-index:0; transition:0.5s; }
 
-        .btn-side, .task-btn { 
-            width: 100%; 
-            background: rgba(255,255,255,0.05); 
-            border: 1px solid var(--border); 
-            color: var(--accent); 
-            padding: 10px; 
-            cursor: pointer; 
-            font-weight: 700; 
-            font-family: inherit; 
-            border-radius: 8px; 
-            transition: all 0.2s ease;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        /* ── Buttons ── */
+        .btn-side, .task-btn {
+            width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--border);
+            color:var(--accent); padding:10px; cursor:pointer; font-weight:700;
+            font-family:inherit; border-radius:8px; transition:all 0.2s ease;
+            text-align:center; display:flex; align-items:center; justify-content:center;
+            text-transform:uppercase; letter-spacing:1px;
         }
-
-        .btn-side:hover, .task-btn:hover { 
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+        .btn-side:hover, .task-btn:hover {
+            background:rgba(255,255,255,0.1); border-color:var(--accent);
+            box-shadow:0 0 10px rgba(255,255,255,0.05);
         }
+        .task-btn { width:auto; padding:5px 8px; font-size:0.75em; white-space:nowrap; }
 
-        .task-btn { 
-            width: auto; 
-            padding: 5px 8px; 
-            font-size: 0.75em; 
-            white-space: nowrap;
-        }
-
-        /* UNL Button */
-        .task-btn-unl { position: relative; }
+        /* UNL button — shows current color as underline stripe */
+        .task-btn-unl { position:relative; }
         .task-btn-unl::after {
-            content: '';
-            position: absolute;
-            bottom: 3px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60%;
-            height: 2px;
-            background: var(--underline-color, #ffffff);
-            border-radius: 2px;
-            transition: background 0.2s;
+            content:''; position:absolute; bottom:3px; left:50%;
+            transform:translateX(-50%); width:60%; height:2px;
+            background:var(--underline-color); border-radius:2px; transition:background 0.2s;
         }
+        .task-btn-unl.unl-active { background:rgba(255,255,255,0.15) !important; border-color:var(--underline-color) !important; }
 
-        /* UNL Color Picker Popover */
+        /* ── UNL Color Picker ── */
         #unlColorPopover {
-            position: fixed;
-            display: none;
-            z-index: 3000;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 12px;
-            flex-direction: column;
-            gap: 10px;
-            min-width: 180px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position:fixed; display:none; z-index:3000;
+            background:rgba(0,0,0,0.9); backdrop-filter:blur(20px);
+            border:1px solid var(--border); border-radius:14px; padding:12px;
+            flex-direction:column; gap:10px; min-width:200px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.5);
         }
-        #unlColorPopover.open { display: flex; }
-        .unl-popover-title { font-size: 0.65em; letter-spacing: 2px; font-weight: 700; color: var(--accent); text-align: center; opacity: 0.7; }
-        .unl-swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-        .unl-swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s; }
-        .unl-swatch:hover { transform: scale(1.2); }
-        .unl-swatch.active { border-color: #fff; }
-        .unl-custom-row { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.7em; font-weight: 700; letter-spacing: 1px; color: var(--accent); opacity: 0.7; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--border); transition: opacity 0.2s; }
-        .unl-custom-row:hover { opacity: 1; }
-        #unlCustomColorDot { width: 14px; height: 14px; border-radius: 50%; background: #ffffff; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3); }
-        .unl-apply-btn { background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: var(--accent); font-family: inherit; font-weight: 700; font-size: 0.7em; letter-spacing: 1px; border-radius: 8px; padding: 6px; cursor: pointer; transition: background 0.2s; text-transform: uppercase; }
-        .unl-apply-btn:hover { background: rgba(255,255,255,0.15); }
+        #unlColorPopover.open { display:flex; }
+        .unl-popover-title { font-size:0.6em; letter-spacing:2px; font-weight:700; color:var(--accent); text-align:center; opacity:0.6; }
+        .unl-swatches { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+        .unl-swatch {
+            width:24px; height:24px; border-radius:50%; cursor:pointer;
+            border:2px solid transparent; transition:transform 0.15s, border-color 0.15s;
+        }
+        .unl-swatch:hover { transform:scale(1.2); }
+        .unl-swatch.active { border-color:#fff; }
+        .unl-custom-row {
+            display:flex; align-items:center; gap:8px; cursor:pointer;
+            font-size:0.7em; font-weight:700; letter-spacing:1px; color:var(--accent);
+            opacity:0.7; padding:4px 6px; border-radius:8px; border:1px solid var(--border); transition:opacity 0.2s;
+        }
+        .unl-custom-row:hover { opacity:1; }
+        #unlCustomColorDot { width:14px; height:14px; border-radius:50%; background:#ffffff; flex-shrink:0; border:1px solid rgba(255,255,255,0.3); }
 
-        /* ─── SIDEBAR ──────────────────────────────────────────────────────── */
-        #sidebar { 
-            width: 280px;
-            min-width: 280px;
-            background: var(--island-bg); 
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border); 
-            border-radius: 20px;
-            display: flex; 
-            flex-direction: column; 
-            padding: 20px; 
-            flex-shrink: 0; 
-            z-index: 20;
+        /* ── SIDEBAR ── */
+        #sidebar {
+            width:280px; min-width:280px;
+            background:var(--island-bg); backdrop-filter:blur(20px);
+            border:1px solid var(--border); border-radius:20px;
+            display:flex; flex-direction:column; padding:20px;
+            flex-shrink:0; z-index:20; overflow:hidden;
+            transition:width 0.4s cubic-bezier(0.4,0,0.2,1),
+                        min-width 0.4s cubic-bezier(0.4,0,0.2,1),
+                        padding 0.4s cubic-bezier(0.4,0,0.2,1),
+                        opacity 0.3s ease, border-color 0.4s ease,
+                        margin 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        #sidebar.zen { width:0!important; min-width:0!important; padding:0!important; opacity:0; border-color:transparent; margin-right:calc(-1 * var(--gap)); }
+
+        #logo-container { border:2px solid var(--accent); padding:10px; text-align:center; margin-bottom:8px; border-radius:10px; }
+        #logo { font-size:1.4em; font-weight:700; letter-spacing:5px; }
+        #user-badge { font-size:0.6em; letter-spacing:3px; opacity:0.4; text-align:center; margin-bottom:16px; text-transform:uppercase; }
+
+        #tree { flex-grow:1; overflow-y:auto; scrollbar-width:none; margin-bottom:10px; }
+        .tree-node { margin-left:10px; border-left:1px solid rgba(255,255,255,0.1); }
+        .tree-header { cursor:pointer; padding:8px; font-weight:700; display:flex; gap:5px; align-items:center; border-radius:8px; }
+        .tree-header:hover { background:rgba(255,255,255,0.05); }
+        .tree-file { cursor:pointer; padding:5px 10px; font-size:0.9em; display:flex; justify-content:space-between; border-radius:5px; }
+        .tree-file:hover { background:rgba(255,255,255,0.1); }
+
+        /* ── WORKSPACE ── */
+        #workspace { flex-grow:1; display:flex; position:relative; gap:0; z-index:1; }
+
+        .pane { flex:1; display:flex; flex-direction:column; border:1px solid var(--border); border-radius:20px; background:var(--glass); backdrop-filter:blur(12px); overflow:hidden; min-width:0; transition:border 0.3s,box-shadow 0.3s,border-radius 0.4s; }
+        .pane.active { border:1px solid var(--accent); box-shadow:0 0 25px rgba(0,0,0,0.2); }
+
+        #resizer { width:var(--gap); cursor:col-resize; z-index:10; flex-shrink:0; position:relative; }
+        #resizer::after { content:""; position:absolute; top:20%; bottom:20%; left:50%; transform:translateX(-50%); width:2px; background:var(--border); border-radius:2px; transition:background 0.2s; pointer-events:none; }
+        #resizer:hover::after { background:var(--accent); }
+
+        .taskbar { height:50px; background:rgba(0,0,0,0.25); border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:0 10px; gap:5px; }
+        .tb-left { display:flex; gap:5px; overflow:hidden; }
+        .tb-center { display:flex; justify-content:center; align-items:center; min-width:50px; gap:0; overflow:hidden; }
+        .tb-right { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
+        .note-title { font-size:0.75em; opacity:0.8; font-weight:700; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; color:var(--accent); text-overflow:ellipsis; overflow:hidden; }
+
+        .dot { width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0; }
+        .dot-save { background:var(--pastel-green); box-shadow:0 0 8px var(--pastel-green); }
+        .dot-del { background:var(--pastel-red); cursor:pointer; border:none; transition:0.2s; }
+        .dot-del:hover { transform:scale(1.2); }
+        .dot-del:disabled { background:rgba(255,138,138,0.25); cursor:not-allowed; transform:none!important; }
+
+        .editor { flex-grow:1; padding:25px; overflow-y:auto; font-size:1.1em; color:var(--accent); line-height:1.6; background:transparent; }
+        .editor ul { margin-left:40px; margin-top:10px; margin-bottom:10px; }
+        .word-count { font-size:0.7em; opacity:0.5; padding:10px 25px; background:rgba(0,0,0,0.1); border-top:1px solid var(--border); }
+
+        /* ── MODALS ── */
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.3); display:none; justify-content:center; align-items:center; z-index:1000; backdrop-filter:blur(10px); }
+        .modal { background:rgba(0,0,0,0.8); backdrop-filter:blur(25px); border:2px dashed var(--accent); padding:30px; position:relative; border-radius:24px; box-shadow:0 20px 50px rgba(0,0,0,0.5); }
+        .modal-close { position:absolute; top:18px; right:18px; width:14px; height:14px; background:var(--pastel-red); border-radius:50%; cursor:pointer; border:none; }
+        .modal input { width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:#fff; padding:15px 20px; margin:20px 0; font-family:inherit; border-radius:12px; font-size:1em; transition:0.3s; }
+        .modal input:focus { border-color:var(--accent); background:rgba(255,255,255,0.08); }
+        .modal-list { max-height:280px; overflow-y:auto; margin:15px 0; display:flex; flex-direction:column; gap:8px; scrollbar-width:none; }
+        .modal-list-item { background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; border:1px solid var(--border); font-size:0.9em; transition:border-color 0.2s; }
+        .modal-list-item:hover { border-color:rgba(255,255,255,0.3); }
+
+        .trash-item-inner { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+        .trash-item-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0.85; }
+        .trash-item-actions { display:flex; gap:8px; flex-shrink:0; }
+        .recovery-btn { width:auto!important; padding:5px 10px!important; font-size:0.75em!important; white-space:nowrap; background:rgba(255,255,255,0.08)!important; border:1px solid var(--border)!important; color:var(--accent)!important; border-radius:6px!important; cursor:pointer; font-family:inherit; font-weight:700; letter-spacing:1px; text-transform:uppercase; transition:background 0.2s,border-color 0.2s!important; }
+        .recovery-btn:hover { background:rgba(255,255,255,0.2)!important; border-color:var(--accent)!important; }
+        .recovery-btn.del { color:var(--pastel-red)!important; }
+        .recovery-btn.del:hover { background:rgba(255,100,100,0.15)!important; border-color:var(--pastel-red)!important; }
+
+        .ctx-menu { position:fixed; background:rgba(0,0,0,0.95); backdrop-filter:blur(15px); border:1px solid var(--border); display:none; z-index:2000; min-width:160px; border-radius:12px; overflow:hidden; }
+        .ctx-item { padding:12px 15px; cursor:pointer; font-size:0.8em; border-bottom:1px solid rgba(255,255,255,0.05); }
+        .ctx-item:hover { background:var(--accent); color:#000; }
+
+        .version-tag { font-size:0.6em; opacity:0.4; text-align:center; margin-bottom:8px; letter-spacing:2px; }
+
+        ::-webkit-scrollbar { width:4px; }
+        ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.2); border-radius:10px; }
+
+        /* ── THEME SELECTOR ── */
+        #themeWrapper { position:relative; margin-bottom:10px; }
+        #themeBtn { width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--accent); padding:10px; cursor:pointer; font-weight:700; font-family:inherit; border-radius:8px; transition:all 0.2s; text-align:center; display:flex; align-items:center; justify-content:space-between; text-transform:uppercase; letter-spacing:1px; font-size:1em; }
+        #themeBtn:hover { background:rgba(255,255,255,0.1); border-color:var(--accent); }
+        #themeBtn .tb-arrow { font-size:0.6em; opacity:0.5; transition:transform 0.2s; }
+        #themeBtn.open .tb-arrow { transform:rotate(180deg); }
+
+        #themeDropdown { position:fixed; left:0; bottom:0; background:rgba(0,0,0,0.95); backdrop-filter:blur(20px); border:1px solid var(--border); border-radius:12px; overflow:hidden; display:none; flex-direction:column; z-index:500; box-shadow:0 -10px 30px rgba(0,0,0,0.5); }
+        #themeDropdown.open { display:flex; }
+
+        .theme-option { padding:11px 14px; cursor:pointer; font-size:0.8em; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--accent); border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:10px; transition:background 0.15s; }
+        .theme-option:last-child { border-bottom:none; }
+        .theme-option:hover { background:rgba(255,255,255,0.08); }
+        .theme-option.active { background:rgba(255,255,255,0.06); }
+        .theme-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+        .theme-option-custom { flex-direction:column; align-items:flex-start; gap:8px; }
+        .theme-option-custom-top { display:flex; align-items:center; gap:10px; width:100%; }
+        .custom-color-preview { width:10px; height:10px; border-radius:50%; flex-shrink:0; border:1px solid rgba(255,255,255,0.3); transition:background 0.2s; }
+        .custom-swatches { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; width:100%; padding:0 24px; }
+        .custom-swatch { width:100%; aspect-ratio:1; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:transform 0.15s,border-color 0.15s; }
+        .custom-swatch:hover { transform:scale(1.15); }
+        .custom-swatch.active { border-color:#fff; }
+        .custom-picker-row { display:flex; align-items:center; gap:6px; padding:4px 24px 6px; width:100%; cursor:pointer; font-size:0.7em; letter-spacing:1px; opacity:0.6; transition:opacity 0.2s; }
+        .custom-picker-row:hover { opacity:1; }
+
+        #globalColorPicker, #unlHiddenPicker { position:absolute; visibility:hidden; width:0; height:0; }
+
+        /* ── BACKGROUND PICKER MODAL ── */
+        #bgModal .modal { width:560px; }
+        .bg-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:20px 0; }
+        .bg-thumb {
+            aspect-ratio:16/9; border-radius:12px; cursor:pointer; overflow:hidden;
+            border:2px solid transparent; transition:border-color 0.2s,transform 0.2s;
+            background-size:cover; background-position:center; position:relative;
+        }
+        .bg-thumb:hover { transform:scale(1.03); border-color:rgba(255,255,255,0.4); }
+        .bg-thumb.selected { border-color:var(--accent); box-shadow:0 0 15px rgba(255,255,255,0.2); }
+        .bg-thumb-label { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.6); font-size:0.6em; letter-spacing:2px; text-transform:uppercase; padding:4px 8px; font-weight:700; text-align:center; }
+        .bg-none { background:rgba(255,255,255,0.03); border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; font-size:0.65em; letter-spacing:2px; text-transform:uppercase; opacity:0.5; }
+
+
+
+        /* ── EXPORT MODAL ── */
+        #exportModal .modal { width:420px; }
+        .export-options { display:flex; gap:12px; margin-top:20px; }
+        .export-card {
+            flex:1; background:rgba(255,255,255,0.04); border:1px solid var(--border);
+            border-radius:14px; padding:20px; cursor:pointer; text-align:center;
+            transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:10px;
+        }
+        .export-card:hover { background:rgba(255,255,255,0.1); border-color:var(--accent); }
+        .export-icon { font-size:2em; }
+        .export-label { font-size:0.7em; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
+        .export-desc { font-size:0.6em; opacity:0.5; letter-spacing:1px; }
+        #exportProgress { display:none; text-align:center; padding:20px 0; font-size:0.75em; letter-spacing:2px; opacity:0.7; }
+
+        /* ── HABIT TRACKER ── */
+        #habitModal .modal { width:640px; max-width:95vw; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; }
+        .habit-toolbar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+        .habit-list { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; scrollbar-width:none; max-height:380px; }
+        .habit-row {
+            display:grid; grid-template-columns:1fr repeat(7,1fr) auto;
+            gap:6px; align-items:center; background:rgba(255,255,255,0.04);
+            border:1px solid var(--border); border-radius:10px; padding:10px 12px;
+        }
+        .habit-name { font-size:0.85em; font-weight:700; letter-spacing:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .habit-cell {
+            width:100%; aspect-ratio:1; border-radius:6px; cursor:pointer;
+            background:rgba(255,255,255,0.06); border:1px solid var(--border);
+            display:flex; align-items:center; justify-content:center;
+            font-size:0.75em; font-weight:700; transition:all 0.15s; font-family:inherit;
+            color:var(--accent);
+        }
+        .habit-cell.done { background:rgba(255,255,255,0.15); border-color:var(--accent); }
+        .habit-cell.done-x::after { content:'✕'; }
+        .habit-cell.done-check::after { content:'✓'; }
+        .habit-del { width:22px; height:22px; border-radius:50%; background:rgba(255,138,138,0.2); border:1px solid var(--pastel-red); color:var(--pastel-red); cursor:pointer; font-size:0.7em; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
+        .habit-del:hover { background:rgba(255,138,138,0.4); }
+        .habit-day-label { text-align:center; font-size:0.55em; letter-spacing:1px; opacity:0.4; font-weight:700; text-transform:uppercase; }
+        .habit-header-row {
+            display:grid; grid-template-columns:1fr repeat(7,1fr) auto;
+            gap:6px; padding:4px 12px; margin-bottom:4px;
+        }
+        .mode-toggle { display:flex; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+        .mode-btn { padding:6px 14px; font-size:0.7em; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; font-family:inherit; color:var(--accent); background:transparent; border:none; transition:background 0.15s; }
+        .mode-btn.active { background:rgba(255,255,255,0.15); }
+        .habit-week-nav { display:flex; align-items:center; gap:10px; font-size:0.7em; letter-spacing:1px; opacity:0.7; }
+        .week-nav-btn { background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--accent); border-radius:6px; padding:4px 10px; cursor:pointer; font-family:inherit; font-weight:700; font-size:1em; transition:background 0.15s; }
+        .week-nav-btn:hover { background:rgba(255,255,255,0.12); }
+        .habit-count-cell { min-width:30px; }
+
+        /* ── QUICK NOTE badge ── */
+        .quicknote-badge {
+            font-size:0.55em; letter-spacing:2px; opacity:0.35;
+            text-transform:uppercase; margin-left:6px;
+            vertical-align:middle; font-weight:700;
+        }
+
+        /* ── TOAST ── */
+        #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px); background:rgba(0,0,0,0.85); border:1px solid var(--border); border-radius:12px; padding:10px 24px; font-size:0.75em; letter-spacing:2px; text-transform:uppercase; opacity:0; transition:opacity 0.3s,transform 0.3s; z-index:9999; pointer-events:none; }
+        #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+        /* ── SETTINGS PANEL ── */
+        .settings-panel {
             overflow: hidden;
-            /* Smooth zen transition */
-            transition: 
-                width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                min-width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.3s ease,
-                border-color 0.4s ease,
-                margin 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Zen state for sidebar */
-        #sidebar.zen {
-            width: 0 !important;
-            min-width: 0 !important;
-            padding: 0 !important;
+            max-height: 0;
             opacity: 0;
-            border-color: transparent;
-            margin-right: calc(-1 * var(--gap));
+            transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+            margin-bottom: 0;
+        }
+        .settings-panel.open {
+            max-height: 600px;
+            opacity: 1;
+            margin-bottom: 10px;
+            overflow: visible;
+        }
+        .settings-item {
+            margin-bottom: 8px !important;
+            font-size: 0.82em !important;
+        }
+        /* Active state for settings button */
+        #settingsBtn.active {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.1);
         }
 
-        #logo-container { border: 2px solid var(--accent); padding: 10px; text-align: center; margin-bottom: 20px; border-radius: 10px; }
-        #logo { font-size: 1.4em; font-weight: 700; letter-spacing: 5px; }
-
-        #tree { flex-grow: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 10px; }
-        .tree-node { margin-left: 10px; border-left: 1px solid rgba(255,255,255,0.1); }
-        .tree-header { cursor: pointer; padding: 8px; font-weight: 700; display: flex; gap: 5px; align-items: center; border-radius: 8px; }
-        .tree-header:hover { background: rgba(255,255,255,0.05); }
-        .tree-file { cursor: pointer; padding: 5px 10px; font-size: 0.9em; display: flex; justify-content: space-between; border-radius: 5px; }
-        .tree-file:hover { background: rgba(255,255,255,0.1); }
-
-        /* ─── WORKSPACE ────────────────────────────────────────────────────── */
-        #workspace { 
-            flex-grow: 1; 
-            display: flex; 
-            position: relative; 
-            gap: var(--gap); 
-            z-index: 1;
-            transition: gap 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        /* ── Export button — tiny inline icon next to note title ── */
+        .task-btn-export-inline {
+            background: none;
+            border: none;
+            color: var(--accent);
+            opacity: 0.25;
+            font-size: 0.75em;
+            cursor: pointer;
+            padding: 2px 4px;
+            margin-left: 4px;
+            border-radius: 4px;
+            transition: opacity 0.2s;
+            font-family: inherit;
+            flex-shrink: 0;
         }
+        .task-btn-export-inline:hover { opacity: 0.85; }
 
-        .pane { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            border: 1px solid var(--border); 
-            border-radius: 20px; 
-            background: var(--glass); 
-            backdrop-filter: blur(12px); 
-            overflow: hidden; 
-            min-width: 0; 
-            transition: border 0.3s, box-shadow 0.3s, border-radius 0.4s; 
+        /* ── Habit tracker button — subtle icon on right ── */
+        .task-btn-habit {
+            opacity: 0.35;
+            font-size: 1em !important;
+            padding: 4px 6px !important;
+            letter-spacing: 0 !important;
+            min-width: 24px;
         }
-        .pane.active { border: 1px solid var(--accent); box-shadow: 0 0 25px rgba(0,0,0,0.2); }
+        .task-btn-habit:hover { opacity: 0.85 !important; }
 
-        /* Zen: pane goes full-screen flush with body edges */
-        body.zen-mode .pane {
-            border-radius: 20px;
-        }
-
-        #resizer { width: 6px; cursor: col-resize; z-index: 10; margin: 0 -10.5px; border-radius: 10px; }
-
-        .taskbar { 
-            height: 50px; 
-            background: rgba(0,0,0,0.25); 
-            border-bottom: 1px solid var(--border); 
-            display: grid; 
-            grid-template-columns: 1fr auto 1fr; 
-            align-items: center; 
-            padding: 0 10px; 
-            gap: 5px;
-        }
-        .tb-left { display: flex; gap: 5px; overflow: hidden; }
-        .tb-center { display: flex; justify-content: center; min-width: 50px; }
-        .tb-right { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
-        .note-title { font-size: 0.75em; opacity: 0.8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; color: var(--accent); text-overflow: ellipsis; overflow: hidden; }
-
-        .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-        .dot-save { background: var(--pastel-green); box-shadow: 0 0 8px var(--pastel-green); }
-        .dot-del { background: var(--pastel-red); cursor: pointer; border: none; transition: 0.2s; }
-        .dot-del:hover { transform: scale(1.2); }
-        .dot-del:disabled { background: rgba(255,138,138,0.25); cursor: not-allowed; transform: none !important; }
-
-        .editor { flex-grow: 1; padding: 25px; overflow-y: auto; font-size: 1.1em; color: var(--accent); line-height: 1.6; background: transparent; }
-        .editor ul { margin-left: 40px; margin-top: 10px; margin-bottom: 10px; }
-        .word-count { font-size: 0.7em; opacity: 0.5; padding: 10px 25px; background: rgba(0,0,0,0.1); border-top: 1px solid var(--border); }
-
-        /* ─── MODALS ───────────────────────────────────────────────────────── */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(10px); }
-        .modal { background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(25px); border: 2px dashed var(--accent); padding: 30px; position: relative; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .modal-close { position: absolute; top: 18px; right: 18px; width: 14px; height: 14px; background: var(--pastel-red); border-radius: 50%; cursor: pointer; border: none; }
-        .modal input { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); color: #fff; padding: 15px 20px; margin: 25px 0; font-family: inherit; border-radius: 12px; font-size: 1.1em; transition: 0.3s; }
-        .modal-list { max-height: 280px; overflow-y: auto; margin: 15px 0; display: flex; flex-direction: column; gap: 8px; scrollbar-width: none; }
-        .modal-list-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.9em; transition: border-color 0.2s; }
-        .modal-list-item:hover { border-color: rgba(255,255,255,0.3); }
-
-        .trash-item-inner { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .trash-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.85; }
-        .trash-item-actions { display: flex; gap: 8px; flex-shrink: 0; }
-        .recovery-btn { width: auto !important; padding: 5px 10px !important; font-size: 0.75em !important; white-space: nowrap; background: rgba(255,255,255,0.08) !important; border: 1px solid var(--border) !important; color: var(--accent) !important; border-radius: 6px !important; cursor: pointer; font-family: inherit; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: background 0.2s, border-color 0.2s !important; }
-        .recovery-btn:hover { background: rgba(255,255,255,0.2) !important; border-color: var(--accent) !important; }
-        .recovery-btn.del { color: var(--pastel-red) !important; }
-        .recovery-btn.del:hover { background: rgba(255,100,100,0.15) !important; border-color: var(--pastel-red) !important; }
-        
-        .ctx-menu { position: fixed; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); border: 1px solid var(--border); display: none; z-index: 2000; min-width: 160px; border-radius: 12px; overflow: hidden; }
-        .ctx-item { padding: 12px 15px; cursor: pointer; font-size: 0.8em; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .ctx-item:hover { background: var(--accent); color: #000; }
-        
-        .version-tag { font-size: 0.6em; opacity: 0.4; text-align: center; margin-bottom: 8px; letter-spacing: 2px; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
-
-        /* ─── THEME SELECTOR ───────────────────────────────────────────────── */
-        #themeWrapper { position: relative; margin-bottom: 10px; }
-        #themeBtn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--accent); padding: 10px; cursor: pointer; font-weight: 700; font-family: inherit; border-radius: 8px; transition: all 0.2s ease; text-align: center; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase; letter-spacing: 1px; font-size: 1em; }
-        #themeBtn:hover { background: rgba(255,255,255,0.1); border-color: var(--accent); }
-        #themeBtn .tb-arrow { font-size: 0.6em; opacity: 0.5; transition: transform 0.2s; }
-        #themeBtn.open .tb-arrow { transform: rotate(180deg); }
-
-        #themeDropdown { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: none; flex-direction: column; z-index: 500; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
-        #themeDropdown.open { display: flex; }
-
-        .theme-option { padding: 11px 14px; cursor: pointer; font-size: 0.8em; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; transition: background 0.15s; }
-        .theme-option:last-child { border-bottom: none; }
-        .theme-option:hover { background: rgba(255,255,255,0.08); }
-        .theme-option.active { background: rgba(255,255,255,0.06); }
-        .theme-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-
-        .theme-option-custom { flex-direction: column; align-items: flex-start; gap: 8px; }
-        .theme-option-custom-top { display: flex; align-items: center; gap: 10px; width: 100%; }
-        .custom-color-preview { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3); transition: background 0.2s; }
-        .custom-swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; padding: 0 24px; }
-        .custom-swatch { width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s; }
-        .custom-swatch:hover { transform: scale(1.15); }
-        .custom-swatch.active { border-color: #fff; }
-        .custom-picker-row { display: flex; align-items: center; gap: 6px; padding: 4px 24px 6px; width: 100%; cursor: pointer; font-size: 0.7em; letter-spacing: 1px; opacity: 0.6; transition: opacity 0.2s; }
-        .custom-picker-row:hover { opacity: 1; }
-
-        #globalColorPicker { position: absolute; visibility: hidden; width: 0; height: 0; }
-        #unlHiddenPicker { position: absolute; visibility: hidden; width: 0; height: 0; }
+        /* ── Export side buttons ── */
+        .tb-right .task-btn { padding:4px 8px; font-size:0.65em; }
     </style>
 </head>
 <body onclick="closeAllMenus()">
@@ -276,108 +336,132 @@
 
 <!-- UNL Color Picker Popover -->
 <div id="unlColorPopover" onclick="event.stopPropagation()">
-    <div class="unl-popover-title">UNDERLINE COLOR</div>
+    <div class="unl-popover-title">UNDERLINE COLOR — CLICK SWATCH TO APPLY</div>
     <div class="unl-swatches" id="unlSwatches"></div>
     <div class="unl-custom-row" onclick="document.getElementById('unlHiddenPicker').click()">
         <div id="unlCustomColorDot"></div>
         <span>CUSTOM COLOR</span>
     </div>
-    <button class="unl-apply-btn" onclick="applyUnderline()">APPLY UNDERLINE</button>
 </div>
 
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- SIDEBAR -->
 <div id="sidebar">
     <div id="logo-container"><div id="logo">ATHLOTES</div></div>
-    <button class="btn-side" style="margin-bottom: 10px;" onclick="openModal('createModal')">ADD ENTRY</button>
-    <button class="btn-side" style="margin-bottom: 15px;" onclick="toggleSplit()">SPLIT VIEW</button>
-    
+    <div id="user-badge">◈ {{ username }} ◈</div>
+    <button class="btn-side" style="margin-bottom:10px" onclick="openModal('createModal')">ADD ENTRY</button>
+    <button class="btn-side" style="margin-bottom:10px" onclick="toggleSplit()">SPLIT VIEW</button>
+
     <div id="tree"></div>
-    
-    <div style="margin-top: auto; padding-top: 20px;">
-        <div class="version-tag">ALPHA V.54</div>
-        <div id="themeWrapper" onclick="event.stopPropagation()">
-            <button id="themeBtn" onclick="toggleThemeDropdown()">
-                <span id="themeBtnLabel">THEME: GLASS DARK</span>
-                <span class="tb-arrow">▼</span>
-            </button>
-            <div id="themeDropdown">
-                <div class="theme-option active" data-theme="" onclick="selectTheme(this)">
-                    <div class="theme-dot" style="background:#ffffff"></div>GLASS DARK
-                </div>
-                <div class="theme-option" data-theme="theme-matrix" onclick="selectTheme(this)">
-                    <div class="theme-dot" style="background:#00FF00"></div>MATRIX
-                </div>
-                <div class="theme-option" data-theme="theme-blood" onclick="selectTheme(this)">
-                    <div class="theme-dot" style="background:#FF4444"></div>BLOOD
-                </div>
-                <div class="theme-option" data-theme="theme-ocean" onclick="selectTheme(this)">
-                    <div class="theme-dot" style="background:#00E5FF"></div>OCEAN
-                </div>
-                <div class="theme-option" data-theme="theme-amber" onclick="selectTheme(this)">
-                    <div class="theme-dot" style="background:#FFB300"></div>AMBER
-                </div>
-                <div class="theme-option theme-option-custom" data-theme="theme-custom" onclick="">
-                    <div class="theme-option-custom-top" onclick="selectTheme(this.closest('.theme-option'))">
-                        <div class="custom-color-preview" id="customColorPreview" style="background:#ffffff"></div>
-                        CUSTOM
+
+    <div style="margin-top:auto; padding-top:20px;">
+        <div class="version-tag">RELEASE V.02</div>
+
+        <!-- SETTINGS PANEL (collapsed by default) -->
+        <div id="settingsPanel" class="settings-panel">
+            <div id="themeWrapper" onclick="event.stopPropagation()">
+                <button id="themeBtn" onclick="toggleThemeDropdown()">
+                    <span id="themeBtnLabel">THEME: GLASS DARK</span>
+                    <span class="tb-arrow">▼</span>
+                </button>
+                <div id="themeDropdown">
+                    <div class="theme-option active" data-theme="" onclick="selectTheme(this)">
+                        <div class="theme-dot" style="background:#fff"></div>GLASS DARK
                     </div>
-                    <div class="custom-swatches" id="customSwatches"></div>
-                    <div class="custom-picker-row" onclick="document.getElementById('globalColorPicker').click()">
-                        <span>+ PICK COLOR</span>
+                    <div class="theme-option" data-theme="theme-matrix" onclick="selectTheme(this)">
+                        <div class="theme-dot" style="background:#00FF00"></div>MATRIX
+                    </div>
+                    <div class="theme-option" data-theme="theme-blood" onclick="selectTheme(this)">
+                        <div class="theme-dot" style="background:#FF4444"></div>BLOOD
+                    </div>
+                    <div class="theme-option" data-theme="theme-ocean" onclick="selectTheme(this)">
+                        <div class="theme-dot" style="background:#00E5FF"></div>OCEAN
+                    </div>
+                    <div class="theme-option" data-theme="theme-amber" onclick="selectTheme(this)">
+                        <div class="theme-dot" style="background:#FFB300"></div>AMBER
+                    </div>
+                    <div class="theme-option theme-option-custom" data-theme="theme-custom" onclick="">
+                        <div class="theme-option-custom-top" onclick="selectTheme(this.closest('.theme-option'))">
+                            <div class="custom-color-preview" id="customColorPreview" style="background:#fff"></div>CUSTOM
+                        </div>
+                        <div class="custom-swatches" id="customSwatches"></div>
+                        <div class="custom-picker-row" onclick="document.getElementById('globalColorPicker').click()">
+                            <span>+ PICK COLOR</span>
+                        </div>
                     </div>
                 </div>
             </div>
+            <button class="btn-side settings-item" onclick="openBgModal()">BACKGROUND</button>
+            <button class="btn-side settings-item" onclick="openModal('habitModal'); renderHabit()">HABIT TRACKER</button>
+            <button class="btn-side settings-item" style="opacity:0.5;" onclick="window.location='/logout'">LOGOUT</button>
         </div>
-        <button class="btn-side" style="font-size: 0.8em;" onclick="openTrash()">RECOVERY HUB</button>
+
+        <!-- Bottom row: RECOVERY above, then SETTINGS toggle -->
+        <div style="display:flex; gap:8px; margin-top:4px;">
+            <button class="btn-side" onclick="openTrash()" style="flex:1; font-size:0.8em;">RECOVERY</button>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:6px;">
+            <button class="btn-side" id="settingsBtn" onclick="toggleSettings(event)" style="flex:1; font-size:0.8em;">SETTINGS</button>
+        </div>
     </div>
 </div>
 
+<!-- WORKSPACE -->
 <div id="workspace">
     <div class="pane active" id="pane-left" onmousedown="setFocus('left')">
         <div class="taskbar">
             <div class="tb-left">
-                <button class="task-btn" id="zen-btn-left" onclick="toggleZen()">ZEN</button>
+                <button class="task-btn" onclick="toggleZen()">ZEN</button>
                 <button class="task-btn" onclick="applyFormat('bold')">BIG</button>
-                <button class="task-btn task-btn-unl" id="unl-btn-left" onclick="toggleUnlPopover(event, 'left')">UNL</button>
+                <button class="task-btn task-btn-unl" id="unl-btn-left" onclick="toggleUnlPopover(event,'left')">UNL</button>
                 <button class="task-btn" onclick="applyFormat('removeFormat')">RES</button>
             </div>
-            <div class="tb-center"><span id="title-left" class="note-title">NO FILE</span></div>
+            <div class="tb-center">
+                <span id="title-left" class="note-title">NO FILE</span>
+                <button class="task-btn-export-inline" onclick="openExport('left')" title="Export note">↓</button>
+            </div>
             <div class="tb-right">
                 <div id="save-left" class="dot dot-save" style="display:none"></div>
                 <button class="dot dot-del" id="close-left" onclick="closePane('left')"></button>
             </div>
         </div>
-        <div id="editor-left" class="editor" contenteditable="true" oninput="handleInput('left')" onkeydown="handleMarkdown(event, 'left')"></div>
+        <div id="editor-left" class="editor" contenteditable="true" oninput="handleInput('left')" onkeydown="handleMarkdown(event,'left')"></div>
         <div class="word-count" id="count-left">WORDS: 0 | ALPHA</div>
     </div>
-    
+
     <div id="resizer"></div>
-    
+
     <div class="pane" id="pane-right" style="display:none" onmousedown="setFocus('right')">
         <div class="taskbar">
             <div class="tb-left">
-                <button class="task-btn" id="zen-btn-right" onclick="toggleZen()">ZEN</button>
+                <button class="task-btn" onclick="toggleZen()">ZEN</button>
                 <button class="task-btn" onclick="applyFormat('bold')">BIG</button>
-                <button class="task-btn task-btn-unl" id="unl-btn-right" onclick="toggleUnlPopover(event, 'right')">UNL</button>
+                <button class="task-btn task-btn-unl" id="unl-btn-right" onclick="toggleUnlPopover(event,'right')">UNL</button>
                 <button class="task-btn" onclick="applyFormat('removeFormat')">RES</button>
             </div>
-            <div class="tb-center"><span id="title-right" class="note-title">NO FILE</span></div>
+            <div class="tb-center">
+                <span id="title-right" class="note-title">NO FILE</span>
+                <button class="task-btn-export-inline" onclick="openExport('right')" title="Export note">↓</button>
+            </div>
             <div class="tb-right">
                 <div id="save-right" class="dot dot-save" style="display:none"></div>
                 <button class="dot dot-del" id="close-right" onclick="closePane('right')"></button>
             </div>
         </div>
-        <div id="editor-right" class="editor" contenteditable="true" oninput="handleInput('right')" onkeydown="handleMarkdown(event, 'right')"></div>
+        <div id="editor-right" class="editor" contenteditable="true" oninput="handleInput('right')" onkeydown="handleMarkdown(event,'right')"></div>
         <div class="word-count" id="count-right">WORDS: 0 | BETA</div>
     </div>
 </div>
 
-<!-- Modals -->
+<!-- ── MODALS ── -->
 <div id="createModal" class="modal-overlay" onclick="closeModal('createModal')">
-    <div class="modal" style="width: 400px;" onclick="event.stopPropagation()">
+    <div class="modal" style="width:400px" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeModal('createModal')"></button>
-        <div style="font-weight:700; text-align: center; letter-spacing: 2px;">[ NEW ENTRY ]</div>
+        <div style="font-weight:700;text-align:center;letter-spacing:2px;">[ NEW ENTRY ]</div>
         <input type="text" id="newName" placeholder="Name or path" autocomplete="off">
-        <div style="display:flex; gap:15px;">
+        <div style="display:flex;gap:15px">
             <button class="btn-side" onclick="createItem('file')">FILE</button>
             <button class="btn-side" onclick="createItem('dir')">FOLDER</button>
         </div>
@@ -385,9 +469,9 @@
 </div>
 
 <div id="moveModal" class="modal-overlay" onclick="closeModal('moveModal')">
-    <div class="modal" style="width: 400px;" onclick="event.stopPropagation()">
+    <div class="modal" style="width:400px" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeModal('moveModal')"></button>
-        <div style="font-weight:700; text-align: center; letter-spacing: 2px;">[ MOVE TO ]</div>
+        <div style="font-weight:700;text-align:center;letter-spacing:2px;">[ MOVE TO ]</div>
         <div class="modal-list" id="folderList"></div>
     </div>
 </div>
@@ -395,17 +479,78 @@
 <div id="trashModal" class="modal-overlay" onclick="closeModal('trashModal')">
     <div class="modal" style="width:450px" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeModal('trashModal')"></button>
-        <div style="font-weight:700; margin-bottom:20px; text-align: center;">[ 🗑 RECOVERY HUB ]</div>
+        <div style="font-weight:700;margin-bottom:20px;text-align:center;">[ 🗑 RECOVERY HUB ]</div>
         <div id="trashList" class="modal-list"></div>
     </div>
 </div>
 
 <div id="renameModal" class="modal-overlay" onclick="closeModal('renameModal')">
-    <div class="modal" style="width: 400px;" onclick="event.stopPropagation()">
+    <div class="modal" style="width:400px" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeModal('renameModal')"></button>
-        <div style="font-weight:700; text-align: center; letter-spacing: 2px;">[ RENAME ]</div>
+        <div style="font-weight:700;text-align:center;letter-spacing:2px;">[ RENAME ]</div>
         <input type="text" id="renameInput" placeholder="New name" autocomplete="off">
         <button class="btn-side" onclick="executeRename()">SAVE CHANGES</button>
+    </div>
+</div>
+
+<!-- Background Modal -->
+<div id="bgModal" class="modal-overlay" onclick="closeModal('bgModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal('bgModal')"></button>
+        <div style="font-weight:700;text-align:center;letter-spacing:2px;margin-bottom:4px;">[ BACKGROUND ]</div>
+        <div style="font-size:0.6em;opacity:0.4;text-align:center;letter-spacing:2px;text-transform:uppercase;">Click to select · Changes apply instantly</div>
+        <div class="bg-grid" id="bgGrid"></div>
+        <button class="btn-side" onclick="closeModal('bgModal')">DONE</button>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div id="exportModal" class="modal-overlay" onclick="closeModal('exportModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal('exportModal')"></button>
+        <div style="font-weight:700;text-align:center;letter-spacing:2px;">[ EXPORT NOTE ]</div>
+        <div style="font-size:0.6em;opacity:0.4;text-align:center;letter-spacing:2px;text-transform:uppercase;margin-top:6px;" id="exportNoteName"></div>
+        <div class="export-options">
+            <div class="export-card" onclick="doExport('image')">
+                <div class="export-icon">🖼</div>
+                <div class="export-label">IMAGE</div>
+                <div class="export-desc">PNG FILE</div>
+            </div>
+            <div class="export-card" onclick="doExport('pdf')">
+                <div class="export-icon">📄</div>
+                <div class="export-label">PDF</div>
+                <div class="export-desc">PDF FILE</div>
+            </div>
+        </div>
+        <div id="exportProgress">GENERATING...</div>
+    </div>
+</div>
+
+<!-- Habit Tracker Modal -->
+<div id="habitModal" class="modal-overlay" onclick="closeModal('habitModal')">
+    <div class="modal" onclick="event.stopPropagation()" style="width:640px;max-width:95vw;">
+        <button class="modal-close" onclick="closeModal('habitModal')"></button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+            <div style="font-weight:700;letter-spacing:2px;">[ HABIT TRACKER ]</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <div class="habit-week-nav">
+                    <button class="week-nav-btn" onclick="shiftWeek(-1)">‹</button>
+                    <span id="weekLabel">THIS WEEK</span>
+                    <button class="week-nav-btn" onclick="shiftWeek(1)">›</button>
+                </div>
+                <div class="mode-toggle">
+                    <button class="mode-btn active" id="mode-x" onclick="setHabitMode('x')">✕</button>
+                    <button class="mode-btn" id="mode-check" onclick="setHabitMode('check')">✓</button>
+                    <button class="mode-btn" id="mode-count" onclick="setHabitMode('count')">123</button>
+                </div>
+            </div>
+        </div>
+        <div class="habit-header-row" id="habitDayHeaders"></div>
+        <div class="habit-list" id="habitList"></div>
+        <div style="margin-top:16px;display:flex;gap:10px;">
+            <input type="text" id="newHabitName" placeholder="NEW HABIT NAME..." style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--accent);padding:10px 14px;font-family:inherit;border-radius:8px;font-size:0.85em;letter-spacing:1px;" onkeydown="if(event.key==='Enter')addHabit()">
+            <button class="btn-side" style="width:auto;padding:10px 20px;" onclick="addHabit()">ADD</button>
+        </div>
     </div>
 </div>
 
@@ -416,388 +561,867 @@
 </div>
 
 <script>
-    let currentPaths = { left: null, right: null }, activeSide = 'left', selectedPath = null;
-    let isZenMode = false;
+// ════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════
+let currentPaths = {left:null, right:null}, activeSide='left', selectedPath=null;
+let isZenMode = false;
+let currentBg = 'background1.webp';
+let exportSide = 'left';
 
-    const CUSTOM_SWATCHES = [
-        '#ffffff','#ff8a8a','#a8e6cf','#FFB300','#00E5FF',
-        '#c9b1ff','#ffcf77','#ff6eb4','#7fffb2','#b0d4ff'
-    ];
-    let activeTheme = '';
-    let currentCustomColor = '#ffffff';
+const CUSTOM_SWATCHES = ['#ffffff','#ff8a8a','#a8e6cf','#FFB300','#00E5FF','#c9b1ff','#ffcf77','#ff6eb4','#7fffb2','#b0d4ff'];
+let activeTheme = '', currentCustomColor = '#ffffff';
 
-    function buildCustomSwatches() {
-        const container = document.getElementById('customSwatches');
-        container.innerHTML = '';
-        CUSTOM_SWATCHES.forEach(color => {
-            const s = document.createElement('div');
-            s.className = 'custom-swatch' + (color === currentCustomColor ? ' active' : '');
-            s.style.background = color;
-            s.title = color;
-            s.onclick = (e) => { e.stopPropagation(); currentCustomColor = color; applyCustomTheme(color); };
-            container.appendChild(s);
-        });
-    }
+// ── UNL
+const UNL_SWATCHES = ['#ffffff','#ff8a8a','#a8e6cf','#FFB300','#00E5FF','#c9b1ff','#ffcf77','#ff6eb4','#7fffb2','#b0d4ff'];
+let unlColor = '#ffffff', unlPopoverSide = 'left', savedSelection = null;
 
-    function toggleThemeDropdown() {
-        const btn = document.getElementById('themeBtn');
-        const dd = document.getElementById('themeDropdown');
-        const isOpen = dd.classList.contains('open');
-        dd.classList.toggle('open', !isOpen);
-        btn.classList.toggle('open', !isOpen);
-        if (!isOpen) buildCustomSwatches();
-    }
-
-    function selectTheme(el) {
-        const theme = el.dataset.theme;
-        document.body.className = isZenMode ? 'zen-mode' : '';
-        if (theme && theme !== 'theme-custom') {
-            document.body.classList.add(theme);
-            document.documentElement.style.removeProperty('--accent');
-            document.documentElement.style.removeProperty('--border');
-            document.documentElement.style.removeProperty('--bg-overlay');
-        } else if (theme === 'theme-custom') {
-            applyCustomTheme(currentCustomColor);
-        } else {
-            document.documentElement.style.removeProperty('--accent');
-            document.documentElement.style.removeProperty('--border');
-            document.documentElement.style.removeProperty('--bg-overlay');
-        }
-        activeTheme = theme;
-        const label = el.querySelector('.theme-option-custom-top') ? 'CUSTOM' : el.textContent.trim();
-        document.getElementById('themeBtnLabel').textContent = 'THEME: ' + label;
-        document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('themeDropdown').classList.remove('open');
-        document.getElementById('themeBtn').classList.remove('open');
-    }
-
-    function applyCustomTheme(color) {
-        const wasZen = document.body.classList.contains('zen-mode');
-        document.body.className = wasZen ? 'zen-mode' : '';
-        document.documentElement.style.setProperty('--accent', color);
-        document.documentElement.style.setProperty('--border', hexToRgba(color, 0.2));
-        document.documentElement.style.setProperty('--bg-overlay', hexToRgba(color, 0.04));
-        document.getElementById('customColorPreview').style.background = color;
-        currentCustomColor = color;
-        document.querySelectorAll('.custom-swatch').forEach(s => {
-            s.classList.toggle('active', s.style.background === color || s.style.background === hexToRgb(color));
-        });
-    }
-
-    function hexToRgba(hex, alpha) {
-        const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-        return `rgba(${r},${g},${b},${alpha})`;
-    }
-    function hexToRgb(hex) {
-        const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-        return `rgb(${r}, ${g}, ${b})`;
-    }
-
-    function updateCustomColor(val) {
-        currentCustomColor = val;
-        applyCustomTheme(val);
-        const customOption = document.querySelector('[data-theme="theme-custom"]');
-        document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
-        customOption.classList.add('active');
-        document.getElementById('themeBtnLabel').textContent = 'THEME: CUSTOM';
-        activeTheme = 'theme-custom';
-    }
-
-    const UNL_SWATCHES = [
-        '#ffffff','#ff8a8a','#a8e6cf','#FFB300','#00E5FF',
-        '#c9b1ff','#ffcf77','#ff6eb4','#7fffb2','#b0d4ff'
-    ];
-    let unlColor = '#ffffff';
-    let unlPopoverSide = 'left';
-    let savedSelection = null;
-
-    function buildUnlSwatches() {
-        const container = document.getElementById('unlSwatches');
-        container.innerHTML = '';
-        UNL_SWATCHES.forEach(color => {
-            const s = document.createElement('div');
-            s.className = 'unl-swatch' + (color === unlColor ? ' active' : '');
-            s.style.background = color;
-            s.title = color;
-            s.onclick = () => selectUnlColor(color);
-            container.appendChild(s);
-        });
-    }
-
-    function selectUnlColor(color) {
-        unlColor = color;
-        document.getElementById('unlCustomColorDot').style.background = color;
-        document.querySelectorAll('.unl-swatch').forEach(s => {
-            s.classList.toggle('active', s.style.background === hexToRgb(color) || s.style.background === color);
-        });
-        document.documentElement.style.setProperty('--underline-color', color);
-    }
-
-    function onUnlCustomPick(val) {
-        unlColor = val;
-        document.getElementById('unlCustomColorDot').style.background = val;
-        document.documentElement.style.setProperty('--underline-color', val);
-        document.querySelectorAll('.unl-swatch').forEach(s => s.classList.remove('active'));
-    }
-
-    function toggleUnlPopover(e, side) {
-        e.stopPropagation();
-        unlPopoverSide = side;
-        savedSelection = saveSelection();
-        const popover = document.getElementById('unlColorPopover');
-        const isOpen = popover.classList.contains('open');
-        popover.classList.toggle('open', !isOpen);
-        if (!isOpen) {
-            buildUnlSwatches();
-            const btn = e.currentTarget;
-            const rect = btn.getBoundingClientRect();
-            popover.style.left = rect.left + 'px';
-            popover.style.top = (rect.bottom + 8) + 'px';
-        }
-    }
-
-    function applyUnderline() {
-        if (savedSelection) restoreSelection(savedSelection);
-        const sel = window.getSelection();
-        if (sel && sel.rangeCount && !sel.getRangeAt(0).collapsed) {
-            const span = document.createElement('span');
-            span.style.textDecoration = 'underline';
-            span.style.textDecorationColor = unlColor;
-            try { sel.getRangeAt(0).surroundContents(span); } catch(e) {}
-            handleInput(unlPopoverSide);
-        }
-        document.getElementById('unlColorPopover').classList.remove('open');
-    }
-
-    function saveSelection() {
-        const sel = window.getSelection();
-        if (!sel || sel.rangeCount === 0) return null;
-        return sel.getRangeAt(0).cloneRange();
-    }
-    function restoreSelection(range) {
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-    }
-    
-    async function loadTree() {
-        const res = await fetch('/api/tree');
-        const tree = await res.json();
-        const container = document.getElementById('tree');
-        container.innerHTML = '';
-        tree.children.forEach(child => renderNode(child, container));
-    }
-
-    function renderNode(node, container) {
-        const div = document.createElement('div');
-        div.className = 'tree-node';
-        if (node.type === 'file') {
-            div.innerHTML = `<div class="tree-file" onclick="openNote('${node.path}', activeSide)" oncontextmenu="showCtx(event, '${node.path}')">
-                <span>${node.name}</span><span style="opacity:0.3;font-size:0.7em">${node.date || ''}</span>
-            </div>`;
-        } else {
-            div.innerHTML = `<div class="tree-header" onclick="toggleFolder(this)" oncontextmenu="showCtx(event, '${node.path}')">
-                <span class="arrow">></span><span>${node.name}</span>
-            </div><div class="tree-children" style="display:none"></div>`;
-            node.children.forEach(c => renderNode(c, div.querySelector('.tree-children')));
-        }
-        container.appendChild(div);
-    }
-
-    function toggleFolder(el) {
-        const children = el.nextElementSibling;
-        const arrow = el.querySelector('.arrow');
-        const isOpen = children.style.display === 'block';
-        children.style.display = isOpen ? 'none' : 'block';
-        arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
-    }
-
-    async function openNote(path, side) {
-        currentPaths[side] = path;
-        const res = await fetch('/get_content', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({path})});
-        const data = await res.json();
-        document.getElementById(`editor-${side}`).innerHTML = data.content;
-        document.getElementById(`title-${side}`).innerText = path.split('/').pop();
-        document.getElementById(`pane-${side}`).style.display = 'flex';
-        updateWordCount(side); setFocus(side); checkLayout();
-    }
-
-    async function openTrash() {
-        const res = await fetch('/api/trash_list');
-        const items = await res.json();
-        const list = document.getElementById('trashList');
-        list.innerHTML = items.length === 0
-            ? `<div style="text-align:center;opacity:0.4;font-size:0.85em;padding:20px;">NOTHING IN TRASH</div>`
-            : items.map(i => `
-            <div class="modal-list-item">
-                <div class="trash-item-inner">
-                    <span class="trash-item-name">${i}</span>
-                    <div class="trash-item-actions">
-                        <button onclick="trashAction('${i}', 'restore')" class="recovery-btn">RES</button>
-                        <button onclick="trashAction('${i}', 'purge')" class="recovery-btn del">DEL</button>
-                    </div>
-                </div>
-            </div>`).join('');
-        openModal('trashModal');
-    }
-
-    async function trashAction(name, action) { 
-        await fetch('/trash_op', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, name})}); 
-        openTrash(); loadTree(); 
-    }
-
-    async function openMoveModal() {
-        const res = await fetch('/api/tree');
-        const tree = await res.json();
-        const folders = [];
-        function extractFolders(node) {
-            if (node.type === 'dir') {
-                folders.push(node.path === "." ? "ROOT" : node.path);
-                node.children.forEach(extractFolders);
-            }
-        }
-        extractFolders(tree);
-        const list = document.getElementById('folderList');
-        list.innerHTML = folders.map(f => `<div class="modal-list-item" style="cursor:pointer;" onclick="executeMove('${f}')">${f}</div>`).join('');
-        openModal('moveModal');
-    }
-
-    async function executeMove(targetFolder) {
-        if(!selectedPath) return;
-        const dest = targetFolder === 'ROOT' ? "" : targetFolder;
-        await fetch('/move', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({src: selectedPath, dest_folder: dest})});
-        closeModal('moveModal'); loadTree();
-    }
-
-    function openRenameModal() {
-        if(!selectedPath) return;
-        document.getElementById('renameInput').value = selectedPath.split('/').pop();
-        openModal('renameModal');
-    }
-
-    async function executeRename() {
-        const newName = document.getElementById('renameInput').value;
-        if(!newName || !selectedPath) return;
-        await fetch('/rename', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({old: selectedPath, new: newName})});
-        closeModal('renameModal'); loadTree();
-    }
-
-    async function deleteItem() {
-        if(!selectedPath) return;
-        await fetch('/trash_op', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'to_trash', name:selectedPath})});
-        loadTree(); closeAllMenus();
-    }
-
-    function handleInput(side) {
-        if (!currentPaths[side]) return;
-        document.getElementById(`save-${side}`).style.display = 'inline-block';
-        updateWordCount(side);
-        clearTimeout(window['t'+side]);
-        window['t'+side] = setTimeout(async () => {
-            await fetch('/save', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({path: currentPaths[side], content: document.getElementById(`editor-${side}`).innerHTML})});
-            document.getElementById(`save-${side}`).style.display = 'none';
-        }, 800);
-    }
-
-    function updateWordCount(side) {
-        const text = document.getElementById(`editor-${side}`).innerText.trim();
-        const count = text ? text.split(/\s+/).length : 0;
-        document.getElementById(`count-${side}`).innerText = `WORDS: ${count} | ${side === 'left' ? 'ALPHA' : 'BETA'}`;
-    }
-
-    function toggleZen() {
-        isZenMode = !isZenMode;
-        const sidebar = document.getElementById('sidebar');
-        const body = document.body;
-
-        if (isZenMode) {
-            body.classList.add('zen-mode');
-            sidebar.classList.add('zen');
-        } else {
-            body.classList.remove('zen-mode');
-            sidebar.classList.remove('zen');
-        }
-
-        updateCloseButtons();
-    }
-
-    function updateCloseButtons() {
-        const leftVisible  = document.getElementById('pane-left').style.display  !== 'none';
-        const rightVisible = document.getElementById('pane-right').style.display !== 'none';
-        const visibleCount = [leftVisible, rightVisible].filter(Boolean).length;
-
-        ['left', 'right'].forEach(side => {
-            const btn = document.getElementById(`close-${side}`);
-            const paneVisible = document.getElementById(`pane-${side}`).style.display !== 'none';
-            btn.disabled = isZenMode && paneVisible && visibleCount === 1;
-        });
-    }
-
-    function toggleSplit() {
-        const r = document.getElementById('pane-right');
-        r.style.display = r.style.display === 'none' ? 'flex' : 'none';
-        checkLayout();
-        updateCloseButtons();
-    }
-
-    function checkLayout() {
-        const pL = document.getElementById('pane-left'), pR = document.getElementById('pane-right'), res = document.getElementById('resizer');
-        res.style.display = (pL.style.display !== 'none' && pR.style.display !== 'none') ? 'block' : 'none';
-    }
-
-    function closePane(s) {
-        const btn = document.getElementById(`close-${s}`);
-        if (btn.disabled) return;
-        document.getElementById(`pane-${s}`).style.display = 'none';
-        checkLayout();
-        updateCloseButtons();
-    }
-
-    function applyFormat(cmd) {
-        document.execCommand(cmd, false, null);
-        handleInput(activeSide);
-    }
-
-    function handleMarkdown(e, side) {
-        if (e.key === ' ') {
-            const sel = window.getSelection(); const range = sel.getRangeAt(0);
-            const text = range.startContainer.textContent.slice(0, range.startOffset);
-            if (text === '#') { e.preventDefault(); document.execCommand('delete', false, null); document.execCommand('formatBlock', false, 'H1'); }
-            else if (text === '-') { e.preventDefault(); document.execCommand('delete', false, null); document.execCommand('insertUnorderedList', false, null); }
-        }
-    }
-
-    let isResizing = false;
-    document.getElementById('resizer').addEventListener('mousedown', () => isResizing = true);
-    window.addEventListener('mousemove', (e) => { 
-        if (!isResizing) return; 
-        let rect = document.getElementById('workspace').getBoundingClientRect(); 
-        let per = ((e.clientX - rect.left) / rect.width) * 100; 
-        if (per > 15 && per < 85) document.getElementById('pane-left').style.flex = `0 0 ${per}%`; 
+// ════════════════════════════════════════════════════════════════
+// THEME
+// ════════════════════════════════════════════════════════════════
+function buildCustomSwatches() {
+    const container = document.getElementById('customSwatches');
+    container.innerHTML = '';
+    CUSTOM_SWATCHES.forEach(color => {
+        const s = document.createElement('div');
+        s.className = 'custom-swatch' + (color === currentCustomColor ? ' active' : '');
+        s.style.background = color;
+        s.onclick = (e) => { e.stopPropagation(); currentCustomColor = color; applyCustomTheme(color); };
+        container.appendChild(s);
     });
-    window.addEventListener('mouseup', () => isResizing = false);
+}
 
-    async function createItem(type) {
-        const name = document.getElementById('newName').value; if (!name) return;
-        await fetch('/create', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, type})});
-        loadTree(); closeModal('createModal');
+function toggleThemeDropdown() {
+    const btn = document.getElementById('themeBtn'), dd = document.getElementById('themeDropdown');
+    const isOpen = dd.classList.contains('open');
+    dd.classList.toggle('open', !isOpen);
+    btn.classList.toggle('open', !isOpen);
+    if (!isOpen) {
+        buildCustomSwatches();
+        // Position fixed dropdown above the button
+        const rect = btn.getBoundingClientRect();
+        dd.style.width = rect.width + 'px';
+        dd.style.left = rect.left + 'px';
+        dd.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+        dd.style.top = 'auto';
+    }
+}
+
+function selectTheme(el) {
+    const theme = el.dataset.theme;
+    const wasZen = document.body.classList.contains('zen-mode');
+    document.body.className = wasZen ? 'zen-mode' : '';
+    if (theme && theme !== 'theme-custom') {
+        document.body.classList.add(theme);
+        document.documentElement.style.removeProperty('--accent');
+        document.documentElement.style.removeProperty('--border');
+        document.documentElement.style.removeProperty('--bg-overlay');
+    } else if (theme === 'theme-custom') {
+        applyCustomTheme(currentCustomColor);
+    } else {
+        document.documentElement.style.removeProperty('--accent');
+        document.documentElement.style.removeProperty('--border');
+        document.documentElement.style.removeProperty('--bg-overlay');
+    }
+    activeTheme = theme;
+    const label = el.querySelector('.theme-option-custom-top') ? 'CUSTOM' : el.textContent.trim();
+    document.getElementById('themeBtnLabel').textContent = 'THEME: ' + label;
+    document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('themeDropdown').classList.remove('open');
+    document.getElementById('themeBtn').classList.remove('open');
+    if (!_configLoading) saveConfig(true);
+}
+
+function applyCustomTheme(color) {
+    const wasZen = document.body.classList.contains('zen-mode');
+    document.body.className = wasZen ? 'zen-mode' : '';
+    document.documentElement.style.setProperty('--accent', color);
+    document.documentElement.style.setProperty('--border', hexToRgba(color, 0.2));
+    document.documentElement.style.setProperty('--bg-overlay', hexToRgba(color, 0.04));
+    document.getElementById('customColorPreview').style.background = color;
+    currentCustomColor = color;
+    document.querySelectorAll('.custom-swatch').forEach(s => {
+        s.classList.toggle('active', s.style.background === color || s.style.background === hexToRgb(color));
+    });
+    if (!_configLoading) saveConfig(true);
+}
+
+function updateCustomColor(val) {
+    currentCustomColor = val;
+    applyCustomTheme(val);
+    const customOption = document.querySelector('[data-theme="theme-custom"]');
+    document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+    customOption.classList.add('active');
+    document.getElementById('themeBtnLabel').textContent = 'THEME: CUSTOM';
+    activeTheme = 'theme-custom';
+}
+
+function hexToRgba(hex, alpha) {
+    const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+function hexToRgb(hex) {
+    const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// CONFIG SAVER / LOADER
+// ════════════════════════════════════════════════════════════════
+async function saveConfig(silent = false) {
+    const cfg = {
+        theme: activeTheme,
+        customColor: currentCustomColor,
+        background: currentBg,
+        unlColor: unlColor
+    };
+    await fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cfg)});
+    if (!silent) showToast('CONFIG SAVED');
+}
+
+let _configLoading = false;
+
+async function loadConfig() {
+    try {
+        _configLoading = true;
+        const res = await fetch('/api/config');
+        const cfg = await res.json();
+        if (!cfg || Object.keys(cfg).length === 0) { _configLoading = false; return; }
+
+        if (cfg.background) {
+            currentBg = cfg.background;
+            applyBackground(cfg.background, true);
+        }
+        if (cfg.unlColor) {
+            unlColor = cfg.unlColor;
+            document.documentElement.style.setProperty('--underline-color', unlColor);
+        }
+        if (cfg.theme === 'theme-custom' && cfg.customColor) {
+            currentCustomColor = cfg.customColor;
+            applyCustomTheme(cfg.customColor);
+            document.getElementById('themeBtnLabel').textContent = 'THEME: CUSTOM';
+            activeTheme = 'theme-custom';
+            document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+            document.querySelector('[data-theme="theme-custom"]').classList.add('active');
+        } else if (cfg.theme) {
+            const el = document.querySelector(`[data-theme="${cfg.theme}"]`);
+            if (el) selectTheme(el);
+        }
+    } catch(e) { console.warn('Config load failed', e); }
+    finally { _configLoading = false; }
+}
+
+// ════════════════════════════════════════════════════════════════
+// BACKGROUND
+// ════════════════════════════════════════════════════════════════
+const BG_OPTIONS = [
+    { file: null, label: 'NONE' },
+    { file: 'background1.webp', label: 'BG 1' },
+    { file: 'background2.webp', label: 'BG 2' },
+    { file: 'background3.webp', label: 'BG 3' },
+    { file: 'background4.webp', label: 'BG 4' },
+    { file: 'background5.webp', label: 'BG 5' },
+];
+
+function applyBackground(file, silent = false) {
+    if (file) {
+        document.body.style.backgroundImage = `url('/static/${file}')`;
+    } else {
+        document.body.style.backgroundImage = 'none';
+    }
+    currentBg = file;
+    if (!silent) saveConfig(true);
+}
+
+function openBgModal() {
+    const grid = document.getElementById('bgGrid');
+    grid.innerHTML = '';
+    BG_OPTIONS.forEach(opt => {
+        const thumb = document.createElement('div');
+        thumb.className = 'bg-thumb' + (currentBg === opt.file ? ' selected' : '');
+        if (opt.file) {
+            thumb.style.backgroundImage = `url('/static/${opt.file}')`;
+        } else {
+            thumb.classList.add('bg-none');
+        }
+        thumb.innerHTML = `<div class="bg-thumb-label">${opt.label}</div>`;
+        thumb.onclick = () => {
+            applyBackground(opt.file);
+            document.querySelectorAll('.bg-thumb').forEach(t => t.classList.remove('selected'));
+            thumb.classList.add('selected');
+        };
+        grid.appendChild(thumb);
+    });
+    openModal('bgModal');
+}
+
+// ════════════════════════════════════════════════════════════════
+// UNL — Instant apply on swatch click
+// ════════════════════════════════════════════════════════════════
+function buildUnlSwatches() {
+    const container = document.getElementById('unlSwatches');
+    container.innerHTML = '';
+    UNL_SWATCHES.forEach(color => {
+        const s = document.createElement('div');
+        s.className = 'unl-swatch' + (color === unlColor ? ' active' : '');
+        s.style.background = color;
+        s.title = color;
+        s.onclick = () => {
+            selectUnlColor(color);
+            // Instant apply
+            if (savedSelection) restoreSelection(savedSelection);
+            applyUnderlineColor(color);
+            closeAllMenus();
+        };
+        container.appendChild(s);
+    });
+}
+
+function selectUnlColor(color) {
+    unlColor = color;
+    document.getElementById('unlCustomColorDot').style.background = color;
+    document.documentElement.style.setProperty('--underline-color', color);
+    document.querySelectorAll('.unl-swatch').forEach(s => {
+        s.classList.toggle('active', s.style.background === hexToRgb(color) || s.style.background === color);
+    });
+    document.querySelectorAll('.task-btn-unl').forEach(btn => {
+        btn.style.setProperty('--underline-color', color);
+    });
+    saveConfig(true);
+}
+
+function onUnlCustomPick(val) {
+    unlColor = val;
+    document.getElementById('unlCustomColorDot').style.background = val;
+    document.documentElement.style.setProperty('--underline-color', val);
+    document.querySelectorAll('.unl-swatch').forEach(s => s.classList.remove('active'));
+    if (savedSelection) restoreSelection(savedSelection);
+    applyUnderlineColor(val);
+    closeAllMenus();
+    saveConfig(true);
+}
+
+function toggleUnlPopover(e, side) {
+    e.stopPropagation();
+    unlPopoverSide = side;
+    // Save selection before popover opens
+    const editor = document.getElementById(`editor-${side}`);
+    editor.focus();
+    savedSelection = saveSelection();
+
+    const popover = document.getElementById('unlColorPopover');
+    const isOpen = popover.classList.contains('open');
+    popover.classList.toggle('open', !isOpen);
+    if (!isOpen) {
+        buildUnlSwatches();
+        const btn = e.currentTarget;
+        const rect = btn.getBoundingClientRect();
+        // Position below button, keep in viewport
+        let left = rect.left;
+        const popW = 200;
+        if (left + popW > window.innerWidth - 10) left = window.innerWidth - popW - 10;
+        popover.style.left = left + 'px';
+        popover.style.top = (rect.bottom + 8) + 'px';
+    }
+}
+
+function applyUnderlineColor(color) {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.getRangeAt(0).collapsed) return;
+    const range = sel.getRangeAt(0);
+    // Use execCommand underline first, then colorize all underlined spans in selection
+    // Robust approach: extract contents, wrap in span, reinsert
+    try {
+        const frag = range.extractContents();
+        const span = document.createElement('span');
+        span.style.textDecoration = 'underline';
+        span.style.textDecorationColor = color;
+        span.appendChild(frag);
+        range.insertNode(span);
+        // Reselect
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+    } catch(e) {
+        // Fallback: apply line by line via execCommand
+        document.execCommand('underline', false, null);
+    }
+    handleInput(unlPopoverSide);
+}
+
+function saveSelection() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    return sel.getRangeAt(0).cloneRange();
+}
+function restoreSelection(range) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+// ════════════════════════════════════════════════════════════════
+// TREE
+// ════════════════════════════════════════════════════════════════
+async function loadTree() {
+    const res = await fetch('/api/tree');
+    const tree = await res.json();
+    const container = document.getElementById('tree');
+    container.innerHTML = '';
+    tree.children.forEach(child => renderNode(child, container));
+}
+
+function renderNode(node, container) {
+    const div = document.createElement('div');
+    div.className = 'tree-node';
+    if (node.type === 'file') {
+        div.innerHTML = `<div class="tree-file" onclick="openNote('${node.path}', activeSide)" oncontextmenu="showCtx(event,'${node.path}')">
+            <span>${node.name}</span><span style="opacity:0.3;font-size:0.7em">${node.date||''}</span>
+        </div>`;
+    } else {
+        div.innerHTML = `<div class="tree-header" onclick="toggleFolder(this)" oncontextmenu="showCtx(event,'${node.path}')">
+            <span class="arrow">></span><span>${node.name}</span>
+        </div><div class="tree-children" style="display:none"></div>`;
+        node.children.forEach(c => renderNode(c, div.querySelector('.tree-children')));
+    }
+    container.appendChild(div);
+}
+
+function toggleFolder(el) {
+    const children = el.nextElementSibling, arrow = el.querySelector('.arrow');
+    const isOpen = children.style.display === 'block';
+    children.style.display = isOpen ? 'none' : 'block';
+    arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+}
+
+async function openNote(path, side) {
+    currentPaths[side] = path;
+    const res = await fetch('/get_content', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({path})});
+    const data = await res.json();
+    document.getElementById(`editor-${side}`).innerHTML = data.content;
+    document.getElementById(`title-${side}`).innerText = path.split('/').pop();
+    document.getElementById(`pane-${side}`).style.display = 'flex';
+    updateWordCount(side); setFocus(side); checkLayout();
+}
+
+// ════════════════════════════════════════════════════════════════
+// SPLIT VIEW — Fixed snapback after resize
+// ════════════════════════════════════════════════════════════════
+let isResizing = false;
+let leftFlexBasis = null; // track explicit basis
+
+document.getElementById('resizer').addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    isResizing = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+});
+
+window.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const ws = document.getElementById('workspace');
+    const pL = document.getElementById('pane-left');
+    const pR = document.getElementById('pane-right');
+    const res = document.getElementById('resizer');
+    const wsRect = ws.getBoundingClientRect();
+    const resizerW = res.offsetWidth;
+    const totalAvail = wsRect.width - resizerW;
+    const leftPx = Math.max(totalAvail * 0.15, Math.min(totalAvail * 0.85, e.clientX - wsRect.left - resizerW / 2));
+    const rightPx = totalAvail - leftPx;
+    pL.style.flex = `0 0 ${leftPx}px`;
+    pR.style.flex = `0 0 ${rightPx}px`;
+    leftFlexBasis = leftPx;
+});
+
+window.addEventListener('mouseup', () => {
+    if (!isResizing) return;
+    isResizing = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+});
+
+function resetPaneSizes() {
+    // Called when split view toggles — clear explicit sizes so flex equalizes
+    document.getElementById('pane-left').style.flex = '1';
+    document.getElementById('pane-right').style.flex = '1';
+    leftFlexBasis = null;
+}
+
+function toggleSplit() {
+    const r = document.getElementById('pane-right');
+    // If right pane is hidden (either never opened or closed via X), open it
+    // If it's visible, close it
+    const opening = r.style.display === 'none' || r.style.display === '';
+    if (opening) {
+        r.style.display = 'flex';
+        resetPaneSizes();
+    } else {
+        r.style.display = 'none';
+        document.getElementById('pane-left').style.flex = '1';
+        leftFlexBasis = null;
+    }
+    checkLayout(); updateCloseButtons();
+}
+
+function checkLayout() {
+    const pL = document.getElementById('pane-left'), pR = document.getElementById('pane-right'), res = document.getElementById('resizer');
+    res.style.display = (pL.style.display !== 'none' && pR.style.display !== 'none') ? 'block' : 'none';
+}
+
+function closePane(s) {
+    const btn = document.getElementById(`close-${s}`);
+    if (btn.disabled) return;
+    document.getElementById(`pane-${s}`).style.display = 'none';
+    // Reset both panes so remaining one fills space
+    document.getElementById('pane-left').style.flex = '1';
+    document.getElementById('pane-right').style.flex = '1';
+    leftFlexBasis = null;
+    checkLayout(); updateCloseButtons();
+    // If right pane was closed, left pane takes full width — split is now off
+}
+
+// ════════════════════════════════════════════════════════════════
+// ZEN MODE
+// ════════════════════════════════════════════════════════════════
+function toggleZen() {
+    isZenMode = !isZenMode;
+    const sidebar = document.getElementById('sidebar');
+    document.body.classList.toggle('zen-mode', isZenMode);
+    sidebar.classList.toggle('zen', isZenMode);
+    // Clear fixed px sizes so panes reflow to fill available space immediately
+    document.getElementById('pane-left').style.flex = '1';
+    document.getElementById('pane-right').style.flex = '1';
+    leftFlexBasis = null;
+    updateCloseButtons();
+}
+
+function updateCloseButtons() {
+    const leftVis = document.getElementById('pane-left').style.display !== 'none';
+    const rightVis = document.getElementById('pane-right').style.display !== 'none';
+    const visCount = [leftVis, rightVis].filter(Boolean).length;
+    ['left','right'].forEach(side => {
+        const btn = document.getElementById(`close-${side}`);
+        const paneVis = document.getElementById(`pane-${side}`).style.display !== 'none';
+        btn.disabled = isZenMode && paneVis && visCount === 1;
+    });
+}
+
+// ════════════════════════════════════════════════════════════════
+// EDITOR
+// ════════════════════════════════════════════════════════════════
+function handleInput(side) {
+    if (!currentPaths[side]) return;
+    document.getElementById(`save-${side}`).style.display = 'inline-block';
+    updateWordCount(side);
+    clearTimeout(window['t'+side]);
+    window['t'+side] = setTimeout(async () => {
+        await fetch('/save', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({path:currentPaths[side], content:document.getElementById(`editor-${side}`).innerHTML})});
+        document.getElementById(`save-${side}`).style.display = 'none';
+    }, 800);
+}
+
+function updateWordCount(side) {
+    const text = document.getElementById(`editor-${side}`).innerText.trim();
+    const count = text ? text.split(/\s+/).length : 0;
+    document.getElementById(`count-${side}`).innerText = `WORDS: ${count} | ${side==='left'?'ALPHA':'BETA'}`;
+}
+
+function applyFormat(cmd) {
+    document.execCommand(cmd, false, null);
+    handleInput(activeSide);
+}
+
+function handleMarkdown(e, side) {
+    if (e.key === ' ') {
+        const sel = window.getSelection(), range = sel.getRangeAt(0);
+        const text = range.startContainer.textContent.slice(0, range.startOffset);
+        if (text === '#') { e.preventDefault(); document.execCommand('delete',false,null); document.execCommand('formatBlock',false,'H1'); }
+        else if (text === '-') { e.preventDefault(); document.execCommand('delete',false,null); document.execCommand('insertUnorderedList',false,null); }
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// EXPORT (image + PDF) — client-side
+// ════════════════════════════════════════════════════════════════
+function openExport(side) {
+    exportSide = side;
+    const name = currentPaths[side] ? currentPaths[side].split('/').pop() : 'note';
+    document.getElementById('exportNoteName').textContent = name.toUpperCase();
+    document.getElementById('exportProgress').style.display = 'none';
+    openModal('exportModal');
+}
+
+async function doExport(type) {
+    const editor = document.getElementById(`editor-${exportSide}`);
+    const noteName = (currentPaths[exportSide] || 'note').split('/').pop().replace('.txt','');
+    const prog = document.getElementById('exportProgress');
+    prog.style.display = 'block';
+    prog.textContent = 'GENERATING...';
+
+    const captureW = 900;
+    const clone = editor.cloneNode(true);
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = `
+        position:fixed; top:-9999px; left:-9999px; z-index:-1;
+        width:${captureW}px;
+        background:#1a1a1a; color:#fff;
+        font-family:'Quicksand',sans-serif;
+        font-size:16px; line-height:1.6;
+        padding:40px; border-radius:0;
+        box-sizing:border-box;
+    `;
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+
+    try {
+        const canvas = await html2canvas(wrapper, {
+            backgroundColor: '#1a1a1a',
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            width: captureW,
+            height: wrapper.scrollHeight,
+            windowWidth: captureW,
+        });
+        document.body.removeChild(wrapper);
+
+        if (type === 'image') {
+            const link = document.createElement('a');
+            link.download = noteName + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            prog.textContent = 'DONE ✓';
+        } else {
+            // PDF — all slicing done in canvas pixels, only convert to mm for addImage
+            const jsPDFLib = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : window.jsPDF;
+            if (!jsPDFLib) throw new Error('jsPDF not loaded');
+
+            const pdf = new jsPDFLib({ orientation:'portrait', unit:'mm', format:'a4' });
+            const pdfW_mm = pdf.internal.pageSize.getWidth();   // 210mm
+            const pdfH_mm = pdf.internal.pageSize.getHeight();  // 297mm
+
+            // how many canvas pixels correspond to one mm
+            const pxPerMm = canvas.width / pdfW_mm;
+            const pageH_px = Math.floor(pdfH_mm * pxPerMm);
+            const totalH_px = canvas.height;
+            let srcY = 0;
+            let pageIndex = 0;
+
+            while (srcY < totalH_px) {
+                const sliceH_px = Math.min(pageH_px, totalH_px - srcY);
+                const sliceH_mm = sliceH_px / pxPerMm;
+
+                const pageCanvas = document.createElement('canvas');
+                pageCanvas.width = canvas.width;
+                pageCanvas.height = sliceH_px;
+                const ctx = pageCanvas.getContext('2d');
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                ctx.drawImage(canvas, 0, srcY, canvas.width, sliceH_px, 0, 0, canvas.width, sliceH_px);
+
+                if (pageIndex > 0) pdf.addPage();
+                pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW_mm, sliceH_mm);
+
+                srcY += pageH_px;
+                pageIndex++;
+            }
+
+            pdf.save(noteName + '.pdf');
+            prog.textContent = 'DONE ✓';
+        }
+    } catch(err) {
+        if (wrapper.parentNode) document.body.removeChild(wrapper);
+        prog.textContent = 'ERROR — TRY AGAIN';
+        console.error(err);
+    }
+    setTimeout(() => { prog.style.display='none'; }, 2000);
+}
+
+// ════════════════════════════════════════════════════════════════
+// HABIT TRACKER
+// ════════════════════════════════════════════════════════════════
+let habitData = {}; // { habitId: { name, cells: { 'YYYY-MM-DD': val } } }
+let habitMode = 'x'; // 'x' | 'check' | 'count'
+let weekOffset = 0;
+
+function getWeekDates(offset = 0) {
+    const now = new Date();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - ((now.getDay()+6)%7) + offset*7);
+    const days = [];
+    for (let i=0; i<7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        days.push(d);
+    }
+    return days;
+}
+
+function dateKey(d) { return d.toISOString().split('T')[0]; }
+const DAY_NAMES = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+
+function shiftWeek(dir) { weekOffset += dir; renderHabit(); }
+
+function setHabitMode(m) {
+    habitMode = m;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`mode-${m}`).classList.add('active');
+    renderHabit();
+}
+
+function loadHabits() {
+    // Habits loaded async via loadHabitsAsync; this is a no-op sync stub for renderHabit()
+}
+async function loadHabitsAsync() {
+    try {
+        const res = await fetch('/api/habits');
+        habitData = await res.json();
+    } catch { habitData = {}; }
+}
+async function saveHabits() {
+    await fetch('/api/habits', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(habitData)});
+}
+
+async function addHabit() {
+    const inp = document.getElementById('newHabitName');
+    const name = inp.value.trim(); if (!name) return;
+    const id = 'h_' + Date.now();
+    habitData[id] = { name, cells: {} };
+    inp.value = '';
+    await saveHabits(); renderHabit();
+}
+
+async function deleteHabit(id) {
+    delete habitData[id];
+    await saveHabits(); renderHabit();
+}
+
+async function toggleCell(id, dateStr) {
+    if (!habitData[id]) return;
+    const cell = habitData[id].cells[dateStr];
+    if (habitMode === 'count') {
+        habitData[id].cells[dateStr] = (cell || 0) + 1;
+        if (habitData[id].cells[dateStr] > 99) habitData[id].cells[dateStr] = 0;
+    } else {
+        habitData[id].cells[dateStr] = cell ? 0 : 1;
+    }
+    await saveHabits(); renderHabit();
+}
+
+async function renderHabit() {
+    await loadHabitsAsync();
+    const days = getWeekDates(weekOffset);
+    const label = weekOffset === 0 ? 'THIS WEEK' : weekOffset < 0 ? `${Math.abs(weekOffset)}W AGO` : `${weekOffset}W AHEAD`;
+    document.getElementById('weekLabel').textContent = label;
+
+    // Headers
+    const headers = document.getElementById('habitDayHeaders');
+    headers.innerHTML = '<div></div>' + days.map((d,i) => `<div class="habit-day-label">${DAY_NAMES[i]}<br><span style="opacity:0.6">${d.getDate()}</span></div>`).join('') + '<div></div>';
+
+    const list = document.getElementById('habitList');
+    list.innerHTML = '';
+
+    const ids = Object.keys(habitData);
+    if (ids.length === 0) {
+        list.innerHTML = '<div style="text-align:center;opacity:0.3;padding:30px;font-size:0.8em;letter-spacing:2px;">NO HABITS YET</div>';
+        return;
     }
 
-    function showCtx(e, path) { e.preventDefault(); e.stopPropagation(); selectedPath = path; const m = document.getElementById('ctxMenu'); m.style.display = 'block'; m.style.left = e.pageX+'px'; m.style.top = e.pageY+'px'; }
-    function setFocus(s) { activeSide = s; document.querySelectorAll('.pane').forEach(p => p.classList.remove('active')); document.getElementById(`pane-${s}`).classList.add('active'); }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function closeAllMenus() { 
-        document.getElementById('ctxMenu').style.display = 'none'; 
-        document.getElementById('unlColorPopover').classList.remove('open');
+    ids.forEach(id => {
+        const habit = habitData[id];
+        const row = document.createElement('div');
+        row.className = 'habit-row';
+        row.innerHTML = `<div class="habit-name">${habit.name}</div>` +
+            days.map(d => {
+                const dk = dateKey(d);
+                const val = habit.cells[dk] || 0;
+                if (habitMode === 'count') {
+                    return `<button class="habit-cell ${val > 0 ? 'done' : ''}" onclick="toggleCell('${id}','${dk}')">${val > 0 ? val : ''}</button>`;
+                } else {
+                    const cls = val ? `done done-${habitMode}` : '';
+                    return `<button class="habit-cell ${cls}" onclick="toggleCell('${id}','${dk}')"></button>`;
+                }
+            }).join('') +
+            `<button class="habit-del" onclick="deleteHabit('${id}')">×</button>`;
+        list.appendChild(row);
+    });
+}
+
+// ════════════════════════════════════════════════════════════════
+// USERS
+// ════════════════════════════════════════════════════════════════
+
+
+
+
+
+// ════════════════════════════════════════════════════════════════
+// TRASH / MOVE / RENAME / CRUD
+// ════════════════════════════════════════════════════════════════
+async function openTrash() {
+    const res = await fetch('/api/trash_list');
+    const items = await res.json();
+    const list = document.getElementById('trashList');
+    list.innerHTML = items.length === 0
+        ? `<div style="text-align:center;opacity:0.4;font-size:0.85em;padding:20px;">NOTHING IN TRASH</div>`
+        : items.map(i => `
+        <div class="modal-list-item">
+            <div class="trash-item-inner">
+                <span class="trash-item-name">${i}</span>
+                <div class="trash-item-actions">
+                    <button onclick="trashAction('${i}','restore')" class="recovery-btn">RES</button>
+                    <button onclick="trashAction('${i}','purge')" class="recovery-btn del">DEL</button>
+                </div>
+            </div>
+        </div>`).join('');
+    openModal('trashModal');
+}
+
+async function trashAction(name, action) {
+    await fetch('/trash_op', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, name})});
+    openTrash(); loadTree();
+}
+
+async function openMoveModal() {
+    const res = await fetch('/api/tree');
+    const tree = await res.json();
+    const folders = [];
+    function extractFolders(node) {
+        if (node.type === 'dir') {
+            folders.push(node.path === '.' ? 'ROOT' : node.path);
+            node.children.forEach(extractFolders);
+        }
+    }
+    extractFolders(tree);
+    const list = document.getElementById('folderList');
+    list.innerHTML = folders.map(f => `<div class="modal-list-item" style="cursor:pointer" onclick="executeMove('${f}')">${f}</div>`).join('');
+    openModal('moveModal');
+}
+
+async function executeMove(targetFolder) {
+    if (!selectedPath) return;
+    const dest = targetFolder === 'ROOT' ? '' : targetFolder;
+    await fetch('/move', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({src:selectedPath, dest_folder:dest})});
+    closeModal('moveModal'); loadTree();
+}
+
+function openRenameModal() {
+    if (!selectedPath) return;
+    document.getElementById('renameInput').value = selectedPath.split('/').pop();
+    openModal('renameModal');
+}
+
+async function executeRename() {
+    const newName = document.getElementById('renameInput').value;
+    if (!newName || !selectedPath) return;
+    await fetch('/rename', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({old:selectedPath, new:newName})});
+    closeModal('renameModal'); loadTree();
+}
+
+async function deleteItem() {
+    if (!selectedPath) return;
+    await fetch('/trash_op', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'to_trash', name:selectedPath})});
+    loadTree(); closeAllMenus();
+}
+
+async function createItem(type) {
+    const name = document.getElementById('newName').value; if (!name) return;
+    await fetch('/create', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, type})});
+    loadTree(); closeModal('createModal');
+}
+
+// ════════════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════════════
+function toggleSettings(e) {
+    e.stopPropagation();
+    const panel = document.getElementById('settingsPanel');
+    const btn = document.getElementById('settingsBtn');
+    const isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open', !isOpen);
+    btn.classList.toggle('active', !isOpen);
+    // Close theme dropdown if closing panel
+    if (isOpen) {
         document.getElementById('themeDropdown').classList.remove('open');
         document.getElementById('themeBtn').classList.remove('open');
     }
+}
 
-    document.documentElement.style.setProperty('--underline-color', unlColor);
-    buildCustomSwatches();
-    window.onload = loadTree;
+function showCtx(e, path) {
+    e.preventDefault(); e.stopPropagation();
+    selectedPath = path;
+    const m = document.getElementById('ctxMenu');
+    m.style.display = 'block';
+    m.style.left = e.pageX + 'px';
+    m.style.top = e.pageY + 'px';
+}
+
+function setFocus(s) {
+    activeSide = s;
+    document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+    document.getElementById(`pane-${s}`).classList.add('active');
+}
+
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function closeAllMenus() {
+    document.getElementById('ctxMenu').style.display = 'none';
+    document.getElementById('unlColorPopover').classList.remove('open');
+    document.getElementById('themeDropdown').classList.remove('open');
+    document.getElementById('themeBtn').classList.remove('open');
+    // Don't auto-close settings panel on every click — only on outside body click
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+
+// ════════════════════════════════════════════════════════════════
+// QUICK NOTE
+// ════════════════════════════════════════════════════════════════
+async function openQuickNote() {
+    const path = 'quicknote.txt';
+    // Ensure file exists on server
+    await fetch('/create', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({name: path, type: 'file'})
+    });
+    // Load it (may be empty or have prior content)
+    const res = await fetch('/get_content', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({path})
+    });
+    const data = await res.json();
+    currentPaths['left'] = path;
+    const editor = document.getElementById('editor-left');
+    editor.innerHTML = data.content || '';
+    // Show QUICK NOTE label in title
+    document.getElementById('title-left').innerHTML =
+        'QUICK NOTE <span class="quicknote-badge">⚡</span>';
+    updateWordCount('left');
+    setFocus('left');
+    checkLayout();
+    updateCloseButtons();
+}
+
+// ════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════
+document.documentElement.style.setProperty('--underline-color', unlColor);
+buildCustomSwatches();
+
+window.onload = async () => {
+    await loadConfig();
+    loadTree();
+    openQuickNote();
+};
 </script>
 </body>
 </html>
